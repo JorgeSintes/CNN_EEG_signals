@@ -98,9 +98,11 @@ def load_data(
     X_final = X_mixed[keep]
     targets_final = targets_mixed[keep]
 
+    electrodes_filtered = [el.replace('.','') for el in electrodes]
+
     np.save("./data/filtered_data/signals", X_final)
     np.save("./data/filtered_data/targets", targets_final)
-    np.save("./data/filtered_data/electrodes", electrodes)
+    np.save("./data/filtered_data/electrodes", electrodes_filtered)
 
 
 if __name__ == "__main__":
