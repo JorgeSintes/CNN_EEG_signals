@@ -7,6 +7,7 @@ Created on Mon Feb 14 21:51:19 2022
 
 import numpy as np
 import torch
+from sklearn.metrics import accuracy_score
 
 def one_hot(array):
     unique, inverse = np.unique(array, return_inverse=True)

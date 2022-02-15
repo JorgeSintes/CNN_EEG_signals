@@ -1,0 +1,11 @@
+Tasks:
+
+- Take off-the-shelf linear model to make the classification and have it as a form of baseline
+
+- Finish implementing paper
+
+- If time permits it: look into bayesian approaches
+
+Questions for Michael:
+
+- 
