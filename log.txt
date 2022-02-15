@@ -1,0 +1,300 @@
+Fold 1 Epoch 1: Train Loss 3.0156, Train Accur 0.2700, Test Accur 0.2652
+Fold 1 Epoch 2: Train Loss 3.0124, Train Accur 0.2751, Test Accur 0.2724
+Fold 1 Epoch 3: Train Loss 3.0090, Train Accur 0.2769, Test Accur 0.2795
+Fold 1 Epoch 4: Train Loss 3.0105, Train Accur 0.2761, Test Accur 0.2774
+Fold 1 Epoch 5: Train Loss 3.0034, Train Accur 0.2811, Test Accur 0.2764
+Train conf. matrix, epoch 5: 
+[[ 518 1543   66   84]
+ [ 293 1807   75   42]
+ [ 326 1765   82   45]
+ [ 443 1615   68   82]]
+Test conf. matrix, epoch 5: 
+[[ 48 175   9  12]
+ [ 39 201  12  11]
+ [ 36 197  11   3]
+ [ 38 172   8  12]]
+Fold 1 Epoch 6: Train Loss 2.9986, Train Accur 0.2792, Test Accur 0.2785
+Fold 1 Epoch 7: Train Loss 2.9996, Train Accur 0.2819, Test Accur 0.2764
+Fold 1 Epoch 8: Train Loss 2.9981, Train Accur 0.2836, Test Accur 0.2744
+Fold 1 Epoch 9: Train Loss 2.9927, Train Accur 0.2833, Test Accur 0.2764
+Fold 1 Epoch 10: Train Loss 2.9910, Train Accur 0.2848, Test Accur 0.2754
+Train conf. matrix, epoch 10: 
+[[ 570 1514   86   41]
+ [ 313 1783   93   28]
+ [ 338 1739  113   28]
+ [ 488 1580   84   56]]
+Test conf. matrix, epoch 10: 
+[[ 53 171  12   8]
+ [ 48 198  13   4]
+ [ 38 193  14   2]
+ [ 44 171   9   6]]
+Fold 2 Epoch 1: Train Loss 3.0175, Train Accur 0.2562, Test Accur 0.2571
+Fold 2 Epoch 2: Train Loss 3.0153, Train Accur 0.2572, Test Accur 0.2571
+Fold 2 Epoch 3: Train Loss 3.0139, Train Accur 0.2577, Test Accur 0.2602
+Fold 2 Epoch 4: Train Loss 3.0101, Train Accur 0.2606, Test Accur 0.2642
+Fold 2 Epoch 5: Train Loss 3.0126, Train Accur 0.2618, Test Accur 0.2693
+Train conf. matrix, epoch 5: 
+[[ 224 1938   31   23]
+ [ 154 2002   45   24]
+ [ 161 1984   60   30]
+ [ 174 1922   50   32]]
+Test conf. matrix, epoch 5: 
+[[ 24 209   5   1]
+ [ 15 233   4   3]
+ [ 17 210   3   0]
+ [ 22 230   3   5]]
+Fold 2 Epoch 6: Train Loss 3.0083, Train Accur 0.2626, Test Accur 0.2683
+Fold 2 Epoch 7: Train Loss 3.0067, Train Accur 0.2607, Test Accur 0.2673
+Fold 2 Epoch 8: Train Loss 3.0068, Train Accur 0.2628, Test Accur 0.2683
+Fold 2 Epoch 9: Train Loss 3.0055, Train Accur 0.2633, Test Accur 0.2713
+Fold 2 Epoch 10: Train Loss 3.0020, Train Accur 0.2629, Test Accur 0.2713
+Train conf. matrix, epoch 10: 
+[[ 168 1981   50   17]
+ [  93 2054   57   21]
+ [  89 2042   82   22]
+ [ 124 1975   55   24]]
+Test conf. matrix, epoch 10: 
+[[ 17 218   4   0]
+ [  9 238   6   2]
+ [  4 221   4   1]
+ [ 15 235   2   8]]
+Fold 3 Epoch 1: Train Loss 3.0170, Train Accur 0.2550, Test Accur 0.2429
+Fold 3 Epoch 2: Train Loss 3.0161, Train Accur 0.2568, Test Accur 0.2378
+Fold 3 Epoch 3: Train Loss 3.0149, Train Accur 0.2592, Test Accur 0.2388
+Fold 3 Epoch 4: Train Loss 3.0119, Train Accur 0.2594, Test Accur 0.2398
+Fold 3 Epoch 5: Train Loss 3.0114, Train Accur 0.2617, Test Accur 0.2388
+Train conf. matrix, epoch 5: 
+[[ 126 2030    9   28]
+ [  73 2140   15   24]
+ [  73 2091   21   28]
+ [  97 2054   15   30]]
+Test conf. matrix, epoch 5: 
+[[  9 249   2   2]
+ [  5 220   2   1]
+ [ 12 237   2   1]
+ [ 12 226   0   4]]
+Fold 3 Epoch 6: Train Loss 3.0063, Train Accur 0.2617, Test Accur 0.2378
+Fold 3 Epoch 7: Train Loss 3.0056, Train Accur 0.2644, Test Accur 0.2388
+Fold 3 Epoch 8: Train Loss 3.0058, Train Accur 0.2661, Test Accur 0.2378
+Fold 3 Epoch 9: Train Loss 3.0008, Train Accur 0.2659, Test Accur 0.2429
+Fold 3 Epoch 10: Train Loss 3.0007, Train Accur 0.2694, Test Accur 0.2449
+Train conf. matrix, epoch 10: 
+[[ 262 1874   22   35]
+ [ 136 2043   33   40]
+ [ 126 2011   35   41]
+ [ 190 1936   25   45]]
+Test conf. matrix, epoch 10: 
+[[ 24 230   3   5]
+ [ 13 206   4   5]
+ [ 21 222   6   3]
+ [ 22 213   2   5]]
+Fold 4 Epoch 1: Train Loss 3.0160, Train Accur 0.2541, Test Accur 0.2530
+Fold 4 Epoch 2: Train Loss 3.0150, Train Accur 0.2478, Test Accur 0.2866
+Fold 4 Epoch 3: Train Loss 3.0156, Train Accur 0.2608, Test Accur 0.2693
+Fold 4 Epoch 4: Train Loss 3.0129, Train Accur 0.2624, Test Accur 0.2785
+Fold 4 Epoch 5: Train Loss 3.0097, Train Accur 0.2665, Test Accur 0.2846
+Train conf. matrix, epoch 5: 
+[[ 212 1659   88  251]
+ [ 136 1794   89  204]
+ [ 120 1801  106  209]
+ [ 196 1660   81  248]]
+Test conf. matrix, epoch 5: 
+[[ 22 178  14  31]
+ [ 19 214   7  17]
+ [ 21 182   8  18]
+ [ 14 195   8  36]]
+Fold 4 Epoch 6: Train Loss 3.0086, Train Accur 0.2672, Test Accur 0.2835
+Fold 4 Epoch 7: Train Loss 3.0055, Train Accur 0.2691, Test Accur 0.2785
+Fold 4 Epoch 8: Train Loss 3.0049, Train Accur 0.2673, Test Accur 0.2774
+Fold 4 Epoch 9: Train Loss 3.0069, Train Accur 0.2690, Test Accur 0.2795
+Fold 4 Epoch 10: Train Loss 3.0060, Train Accur 0.2712, Test Accur 0.2856
+Train conf. matrix, epoch 10: 
+[[ 283 1709   66  152]
+ [ 153 1864   82  124]
+ [ 139 1883   86  128]
+ [ 232 1729   56  168]]
+Test conf. matrix, epoch 10: 
+[[ 29 186   8  22]
+ [ 18 219   9  11]
+ [ 18 192   9  10]
+ [ 17 208   4  24]]
+Fold 5 Epoch 1: Train Loss 3.0199, Train Accur 0.2401, Test Accur 0.2287
+Fold 5 Epoch 2: Train Loss 3.0165, Train Accur 0.2536, Test Accur 0.2459
+Fold 5 Epoch 3: Train Loss 3.0146, Train Accur 0.2534, Test Accur 0.2520
+Fold 5 Epoch 4: Train Loss 3.0139, Train Accur 0.2537, Test Accur 0.2480
+Fold 5 Epoch 5: Train Loss 3.0135, Train Accur 0.2537, Test Accur 0.2510
+Train conf. matrix, epoch 5: 
+[[  66 1987  100   74]
+ [  56 2014  110   55]
+ [  58 1974  105   68]
+ [  70 1953  103   61]]
+Test conf. matrix, epoch 5: 
+[[  9 201  14   4]
+ [  5 219  13   8]
+ [  5 235  13   7]
+ [  7 224  14   6]]
+Fold 5 Epoch 6: Train Loss 3.0126, Train Accur 0.2555, Test Accur 0.2581
+Fold 5 Epoch 7: Train Loss 3.0142, Train Accur 0.2566, Test Accur 0.2561
+Fold 5 Epoch 8: Train Loss 3.0091, Train Accur 0.2577, Test Accur 0.2571
+Fold 5 Epoch 9: Train Loss 3.0110, Train Accur 0.2575, Test Accur 0.2541
+Fold 5 Epoch 10: Train Loss 3.0104, Train Accur 0.2593, Test Accur 0.2673
+Train conf. matrix, epoch 10: 
+[[ 143 1911   40  133]
+ [ 107 1973   63   92]
+ [ 109 1923   60  113]
+ [ 136 1884   47  120]]
+Test conf. matrix, epoch 10: 
+[[ 23 194   3   8]
+ [  8 217  10  10]
+ [  9 231   6  14]
+ [ 14 213   7  17]]
+Fold 6 Epoch 1: Train Loss 3.0187, Train Accur 0.2502, Test Accur 0.2520
+Fold 6 Epoch 2: Train Loss 3.0158, Train Accur 0.2529, Test Accur 0.2541
+Fold 6 Epoch 3: Train Loss 3.0139, Train Accur 0.2558, Test Accur 0.2591
+Fold 6 Epoch 4: Train Loss 3.0151, Train Accur 0.2573, Test Accur 0.2561
+Fold 6 Epoch 5: Train Loss 3.0125, Train Accur 0.2653, Test Accur 0.2571
+Train conf. matrix, epoch 5: 
+[[ 191  169 1835   13]
+ [ 116  222 1899   11]
+ [ 100  192 1916    6]
+ [ 146  190 1828   20]]
+Test conf. matrix, epoch 5: 
+[[ 23  24 199   1]
+ [ 18  27 186   1]
+ [ 12  34 201   4]
+ [ 18  14 220   2]]
+Fold 6 Epoch 6: Train Loss 3.0114, Train Accur 0.2710, Test Accur 0.2551
+Fold 6 Epoch 7: Train Loss 3.0092, Train Accur 0.2787, Test Accur 0.2642
+Fold 6 Epoch 8: Train Loss 3.0095, Train Accur 0.2778, Test Accur 0.2551
+Fold 6 Epoch 9: Train Loss 3.0081, Train Accur 0.2804, Test Accur 0.2612
+Fold 6 Epoch 10: Train Loss 3.0071, Train Accur 0.2751, Test Accur 0.2530
+Train conf. matrix, epoch 10: 
+[[ 317 1544  334   13]
+ [ 167 1689  382   10]
+ [ 175 1626  409    4]
+ [ 250 1573  340   21]]
+Test conf. matrix, epoch 10: 
+[[ 34 167  45   1]
+ [ 30 167  34   1]
+ [ 18 182  45   6]
+ [ 31 186  34   3]]
+Fold 7 Epoch 1: Train Loss 3.0216, Train Accur 0.2551, Test Accur 0.2561
+Fold 7 Epoch 2: Train Loss 3.0149, Train Accur 0.2585, Test Accur 0.2591
+Fold 7 Epoch 3: Train Loss 3.0136, Train Accur 0.2564, Test Accur 0.2571
+Fold 7 Epoch 4: Train Loss 3.0140, Train Accur 0.2586, Test Accur 0.2632
+Fold 7 Epoch 5: Train Loss 3.0119, Train Accur 0.2626, Test Accur 0.2622
+Train conf. matrix, epoch 5: 
+[[ 190 1893   60   65]
+ [ 104 1970   86   69]
+ [  93 1956   97   67]
+ [ 136 1927   73   68]]
+Test conf. matrix, epoch 5: 
+[[ 19 215   6   7]
+ [ 18 219  11   3]
+ [ 11 220  14   7]
+ [ 16 205   7   6]]
+Fold 7 Epoch 6: Train Loss 3.0122, Train Accur 0.2645, Test Accur 0.2703
+Fold 7 Epoch 7: Train Loss 3.0104, Train Accur 0.2676, Test Accur 0.2713
+Fold 7 Epoch 8: Train Loss 3.0100, Train Accur 0.2689, Test Accur 0.2724
+Fold 7 Epoch 9: Train Loss 3.0062, Train Accur 0.2686, Test Accur 0.2724
+Fold 7 Epoch 10: Train Loss 3.0069, Train Accur 0.2687, Test Accur 0.2724
+Train conf. matrix, epoch 10: 
+[[ 288 1837   50   33]
+ [ 152 1979   77   21]
+ [ 158 1944   83   28]
+ [ 234 1880   61   29]]
+Test conf. matrix, epoch 10: 
+[[ 33 207   6   1]
+ [ 19 222   9   1]
+ [ 13 226   9   4]
+ [ 24 199   7   4]]
+Fold 8 Epoch 1: Train Loss 3.0185, Train Accur 0.2485, Test Accur 0.2358
+Fold 8 Epoch 2: Train Loss 3.0173, Train Accur 0.2495, Test Accur 0.2571
+Fold 8 Epoch 3: Train Loss 3.0101, Train Accur 0.2575, Test Accur 0.2571
+Fold 8 Epoch 4: Train Loss 3.0105, Train Accur 0.2520, Test Accur 0.2673
+Fold 8 Epoch 5: Train Loss 3.0134, Train Accur 0.2501, Test Accur 0.2703
+Train conf. matrix, epoch 5: 
+[[  60 1911    2  242]
+ [  60 1892   13  260]
+ [  53 1924    7  222]
+ [  76 1869    8  255]]
+Test conf. matrix, epoch 5: 
+[[  5 207   0  28]
+ [  6 234   1  14]
+ [  3 226   3  27]
+ [  7 199   0  24]]
+Fold 8 Epoch 6: Train Loss 3.0136, Train Accur 0.2523, Test Accur 0.2693
+Fold 8 Epoch 7: Train Loss 3.0106, Train Accur 0.2525, Test Accur 0.2622
+Fold 8 Epoch 8: Train Loss 3.0092, Train Accur 0.2518, Test Accur 0.2602
+Fold 8 Epoch 9: Train Loss 3.0100, Train Accur 0.2529, Test Accur 0.2602
+Fold 8 Epoch 10: Train Loss 3.0061, Train Accur 0.2524, Test Accur 0.2602
+Train conf. matrix, epoch 10: 
+[[  49 2136    6   24]
+ [  38 2161   15   11]
+ [  31 2150    9   16]
+ [  53 2128   11   16]]
+Test conf. matrix, epoch 10: 
+[[  2 234   1   3]
+ [  4 248   1   2]
+ [  1 252   3   3]
+ [  2 225   0   3]]
+Fold 9 Epoch 1: Train Loss 3.0164, Train Accur 0.2578, Test Accur 0.2564
+Fold 9 Epoch 2: Train Loss 3.0174, Train Accur 0.2643, Test Accur 0.2787
+Fold 9 Epoch 3: Train Loss 3.0134, Train Accur 0.2740, Test Accur 0.2859
+Fold 9 Epoch 4: Train Loss 3.0119, Train Accur 0.2760, Test Accur 0.2767
+Fold 9 Epoch 5: Train Loss 3.0117, Train Accur 0.2768, Test Accur 0.2838
+Train conf. matrix, epoch 5: 
+[[ 155 1335   60  652]
+ [ 124 1551   84  479]
+ [ 118 1487  100  515]
+ [ 141 1348   61  645]]
+Test conf. matrix, epoch 5: 
+[[ 21 161   4  67]
+ [ 17 172   9  44]
+ [ 12 165  10  58]
+ [ 18 144   5  76]]
+Fold 9 Epoch 6: Train Loss 3.0092, Train Accur 0.2761, Test Accur 0.2808
+Fold 9 Epoch 7: Train Loss 3.0079, Train Accur 0.2797, Test Accur 0.2828
+Fold 9 Epoch 8: Train Loss 3.0056, Train Accur 0.2774, Test Accur 0.2859
+Fold 9 Epoch 9: Train Loss 3.0059, Train Accur 0.2785, Test Accur 0.2787
+Fold 9 Epoch 10: Train Loss 3.0036, Train Accur 0.2819, Test Accur 0.2838
+Train conf. matrix, epoch 10: 
+[[ 336 1472   31  363]
+ [ 217 1723   39  259]
+ [ 221 1660   57  282]
+ [ 279 1507   29  380]]
+Test conf. matrix, epoch 10: 
+[[ 40 166   2  45]
+ [ 25 197   6  14]
+ [ 23 197   4  21]
+ [ 36 167   2  38]]
+Fold 10 Epoch 1: Train Loss 3.0159, Train Accur 0.2684, Test Accur 0.2767
+Fold 10 Epoch 2: Train Loss 3.0122, Train Accur 0.2682, Test Accur 0.2787
+Fold 10 Epoch 3: Train Loss 3.0092, Train Accur 0.2692, Test Accur 0.2787
+Fold 10 Epoch 4: Train Loss 3.0113, Train Accur 0.2650, Test Accur 0.2777
+Fold 10 Epoch 5: Train Loss 3.0105, Train Accur 0.2690, Test Accur 0.2787
+Train conf. matrix, epoch 5: 
+[[ 407 1744   26   28]
+ [ 278 1918   21   11]
+ [ 294 1889   30   12]
+ [ 373 1766   31   27]]
+Test conf. matrix, epoch 5: 
+[[ 51 195   2   2]
+ [ 34 213   2   3]
+ [ 32 197   7   4]
+ [ 43 192   3   3]]
+Fold 10 Epoch 6: Train Loss 3.0095, Train Accur 0.2664, Test Accur 0.2869
+Fold 10 Epoch 7: Train Loss 3.0077, Train Accur 0.2682, Test Accur 0.2859
+Fold 10 Epoch 8: Train Loss 3.0074, Train Accur 0.2722, Test Accur 0.2889
+Fold 10 Epoch 9: Train Loss 3.0068, Train Accur 0.2717, Test Accur 0.2899
+Fold 10 Epoch 10: Train Loss 3.0016, Train Accur 0.2735, Test Accur 0.2899
+Train conf. matrix, epoch 10: 
+[[ 431 1717   37   20]
+ [ 263 1924   31   10]
+ [ 251 1915   49   10]
+ [ 401 1745   33   18]]
+Test conf. matrix, epoch 10: 
+[[ 54 190   5   1]
+ [ 26 220   3   3]
+ [ 25 203  10   2]
+ [ 46 187   7   1]]

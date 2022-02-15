@@ -134,7 +134,7 @@ def train_test_model(model,
 
             if output_file:
                 output_file.write(
-                    f"Fold {k} Epoch {epoch + 1}: Train Loss {losses[-1]:.4f}, Train Accur {train_acc_cur:.4f}, Test Accur {test_acc_cur:.4f}"
+                    f"Fold {k} Epoch {epoch + 1}: Train Loss {losses[-1]:.4f}, Train Accur {train_acc_cur:.4f}, Test Accur {test_acc_cur:.4f}\n"
                 )
                 output_file.flush()
 
@@ -145,13 +145,12 @@ def train_test_model(model,
                 print(f'Test conf. matrix, fold {k} epoch {epoch + 1}: \n{test_conf}')
                 if output_file:
                     output_file.write(
-                        f'Train conf. matrix, epoch {epoch + 1}: \n{train_conf}'
+                        f'Train conf. matrix, epoch {epoch + 1}: \n{train_conf}\n'
                     )
                     output_file.write(
-                        f'Test conf. matrix, epoch {epoch + 1}: \n{test_conf}')
+                        f'Test conf. matrix, epoch {epoch + 1}: \n{test_conf}\n')
                     output_file.flush()
 
-    print('Finished')
     train_conf = confusion_matrix(train_true, train_preds)
     test_conf = confusion_matrix(test_true, test_preds)
 

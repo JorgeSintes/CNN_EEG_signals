@@ -13,7 +13,9 @@ def main():
     K = 10
     lr = 1e-5
     batch_size = 64
-    num_epochs = 10
+    num_epochs = 2000
+
+    file = open("./log.txt", "w")
 
     X = np.load("./data/filtered_data/signals.npy")
     y_pre = np.load("./data/filtered_data/targets.npy")
@@ -25,7 +27,7 @@ def main():
     X = select_channels(channel_list, X, electrodes)
     y = torch.from_numpy(y)
 
-    train_acc, test_acc, losses, train_conf, test_conf = cross_validation_1_layer(X, y, K, lr, batch_size, num_epochs)
+    train_acc, test_acc, losses, train_conf, test_conf = cross_validation_1_layer(X, y, K, lr, batch_size, num_epochs, output_file=file)
 
     np.save("./results/train_accuracies", train_acc)
     np.save("./results/test_accuracies", test_acc)
@@ -33,6 +35,7 @@ def main():
     np.save("./results/train_confusion", train_conf)
     np.save("./results/test_confusion", test_conf)
 
+    file.close()
 
 if __name__ == "__main__":
     main()
