@@ -1,6 +1,5 @@
 import pyedflib
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def get_label(annotation, run_name):
