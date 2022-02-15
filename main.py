@@ -20,8 +20,11 @@ X = np.load("./data/filtered_data/signals.npy")
 y = np.load("./data/filtered_data/targets.npy")
 y = one_hot(y)
 
+electrodes = np.load("./data/filtered_data/electrodes.npy")
+
 X = torch.from_numpy(X).float()
 y = torch.from_numpy(y)
+
 
 net = Network()
 

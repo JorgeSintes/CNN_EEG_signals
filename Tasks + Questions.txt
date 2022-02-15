@@ -8,4 +8,4 @@ Tasks:
 
 Questions for Michael:
 
-- 
+- Check if batch norm is performed correctly
