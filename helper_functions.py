@@ -67,7 +67,7 @@ def train_test_model(model,
     if transfer_to_device:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"Using {device}")
-	if output_file:
+        if output_file:
             output_file.write(f"Using {device}")
 
         model = model.to(device)
