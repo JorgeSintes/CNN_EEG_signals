@@ -12,9 +12,10 @@ def main():
     channel_list = ['C1','C2']
     K = 10
     lr = 1e-5
+    minibatch = False
     batch_size = 64
     num_epochs = 2000
-    run_name = f'_lr_{lr}_bs_{bs}'
+    run_name = f'_lr_{lr}_bs_{batch_size}'
     file = open("./results/log"+run_name+".txt", "w")
 
     X = np.load("./data/filtered_data/signals.npy")
@@ -27,7 +28,7 @@ def main():
     X = select_channels(channel_list, X, electrodes)
     y = torch.from_numpy(y)
 
-    train_acc, test_acc, losses, train_conf, test_conf = cross_validation_1_layer(X, y, K, lr, batch_size, num_epochs, output_file=file)
+    train_acc, test_acc, losses, train_conf, test_conf = cross_validation_1_layer(X, y, K, lr, batch_size, num_epochs, minibatch=minibatch, output_file=file)
 
     np.save("./results/train_accuracies" + run_name, train_acc)
     np.save("./results/test_accuracies" + run_name, test_acc)
