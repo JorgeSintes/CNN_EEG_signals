@@ -1,2 +1,4 @@
 __pycache__
-log.txt
+Error_*
+Output_*
+logs/
