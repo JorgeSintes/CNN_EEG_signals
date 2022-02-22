@@ -14,8 +14,8 @@ def main():
     lr = 1e-5
     batch_size = 64
     num_epochs = 2000
-
-    file = open("./log.txt", "w")
+    run_name = f'_lr_{lr}_bs_{bs}'
+    file = open("./results/log"+run_name+".txt", "w")
 
     X = np.load("./data/filtered_data/signals.npy")
     y_pre = np.load("./data/filtered_data/targets.npy")
@@ -29,11 +29,11 @@ def main():
 
     train_acc, test_acc, losses, train_conf, test_conf = cross_validation_1_layer(X, y, K, lr, batch_size, num_epochs, output_file=file)
 
-    np.save("./results/train_accuracies", train_acc)
-    np.save("./results/test_accuracies", test_acc)
-    np.save("./results/losses", losses)
-    np.save("./results/train_confusion", train_conf)
-    np.save("./results/test_confusion", test_conf)
+    np.save("./results/train_accuracies" + run_name, train_acc)
+    np.save("./results/test_accuracies" + run_name, test_acc)
+    np.save("./results/losses" + run_name, losses)
+    np.save("./results/train_confusion" + run_name, train_conf)
+    np.save("./results/test_confusion" + run_name, test_conf)
 
     file.close()
 
