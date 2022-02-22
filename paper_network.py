@@ -45,7 +45,8 @@ class Network(torch.nn.Module):
                       kernel_size=self.kernel_size_c2,
                       stride=1,
                       padding=0),
-            nn.BatchNorm2d(num_features=self.nb_kernels_c2), nn.LeakyReLU())
+            nn.BatchNorm2d(num_features=self.nb_kernels_c2),
+            nn.LeakyReLU())
         # L4
         self.mp_L4 = nn.MaxPool2d(kernel_size=self.kernel_size_m1,
                                   stride=(1, 3),
@@ -56,7 +57,8 @@ class Network(torch.nn.Module):
                       out_channels=self.nb_kernels_c3,
                       kernel_size=self.kernel_size_c3,
                       stride=1,
-                      padding=0), nn.LeakyReLU(),
+                      padding=0),
+            nn.LeakyReLU(),
             nn.Dropout2d(p=0.5, inplace=True))
 
         self.mp_L6 = nn.MaxPool2d(kernel_size=self.kernel_size_m2,

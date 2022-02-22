@@ -15,9 +15,9 @@ def select_channels(channel_list, X, electrodes):
     return X[:, np.isin(electrodes, channel_list), :]
 
 
-def cross_validation_1_layer(X, y, K, lr=1e-5, batch_size=64, num_epochs=2000, output_file=None):
+def cross_validation_1_layer(X, y, K, lr=1e-5, batch_size=64, num_epochs=2000, minibatch=True, output_file=None):
 
-    CV = KFold(n_splits=K, shuffle=True)
+    CV = KFold(n_splits=K, shuffle=True, random_state=12)
 
     train_acc = np.zeros((K, num_epochs))
     test_acc = np.zeros((K, num_epochs))
@@ -46,7 +46,7 @@ def cross_validation_1_layer(X, y, K, lr=1e-5, batch_size=64, num_epochs=2000, o
                 num_epochs,
                 transfer_to_device=True,
                 output_file=output_file,
-                k=i+1)
+                k=i+1, minibatch=minibatch)
 
     return train_acc, test_acc, losses, train_conf, test_conf
 
@@ -62,7 +62,7 @@ def train_test_model(model,
                      num_epochs=10,
                      transfer_to_device=True,
                      output_file=None,
-                     k=None):
+                     k=None, minibatch=True):
 
     if transfer_to_device:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -76,11 +76,13 @@ def train_test_model(model,
         y_train = y_train.to(device)
         X_test = X_test.to(device)
         y_test = y_test.to(device)
-
-    X_train_batches = torch.split(X_train, batch_size, dim=0)
-    y_train_batches = torch.split(y_train, batch_size, dim=0)
-    X_test_batches = torch.split(X_test, batch_size, dim=0)
-    y_test_batches = torch.split(y_test, batch_size, dim=0)
+    
+    if minibatch:
+        
+        X_train_batches = torch.split(X_train, batch_size, dim=0)
+        y_train_batches = torch.split(y_train, batch_size, dim=0)
+        X_test_batches = torch.split(X_test, batch_size, dim=0)
+        y_test_batches = torch.split(y_test, batch_size, dim=0)
 
     train_acc, test_acc = [], []
     losses = []
@@ -89,40 +91,69 @@ def train_test_model(model,
         # Train
         acum_loss = 0
         model.train()
+        
+        if minibatch:
+            
+            for x, y in zip(X_train_batches, y_train_batches):
+                out = model(x)
+    
+                # Compute Loss and gradients
+                batch_loss = criterion(out, y)
+                optimizer.zero_grad()
+                batch_loss.backward()
+                optimizer.step()
+    
+                acum_loss += batch_loss
+    
+            losses.append(acum_loss.to("cpu").data.numpy() / batch_size)
 
-        for x, y in zip(X_train_batches, y_train_batches):
-            out = model(x)
+        else:
+            out = model(X_train)
 
             # Compute Loss and gradients
-            batch_loss = criterion(out, y)
+            loss = criterion(out, y_train)
             optimizer.zero_grad()
-            batch_loss.backward()
+            loss.backward()
             optimizer.step()
-
-            acum_loss += batch_loss
-
-        losses.append(acum_loss.to("cpu").data.numpy() / batch_size)
-
+            
+            losses.append(loss.to("cpu").data.numpy() / len(y_train))
+            
         # Evaluate
         with torch.no_grad():
             train_preds, train_true, test_preds, test_true = [], [], [], []
             model.eval()
-
-            # First on training set
-            for x, y in zip(X_train_batches, y_train_batches):
-                out = model(x)
+            
+            if minibatch:
+                # First on training set
+                for x, y in zip(X_train_batches, y_train_batches):
+                    out = model(x)
+                    preds = torch.max(out, 1)[1].to("cpu")
+                    true = torch.max(y, 1)[1].to("cpu")
+                    train_preds += list(preds.data.numpy())
+                    train_true += list(true.data.numpy())
+    
+                # Then on test
+                for x, y in zip(X_test_batches, y_test_batches):
+                    out = model(x)
+                    preds = torch.max(out, 1)[1].to("cpu")
+                    true = torch.max(y, 1)[1].to("cpu")
+                    test_preds += list(preds.data.numpy())
+                    test_true += list(true.data.numpy())
+            
+            else:
+                
+                out = model(X_train)
                 preds = torch.max(out, 1)[1].to("cpu")
-                true = torch.max(y, 1)[1].to("cpu")
-                train_preds += list(preds.data.numpy())
-                train_true += list(true.data.numpy())
-
-            # Then on test
-            for x, y in zip(X_test_batches, y_test_batches):
-                out = model(x)
+                true = torch.max(y_train, 1)[1].to("cpu")
+                train_preds = list(preds.data.numpy())
+                train_true = list(true.data.numpy())
+                
+                out = model(X_test)
                 preds = torch.max(out, 1)[1].to("cpu")
-                true = torch.max(y, 1)[1].to("cpu")
-                test_preds += list(preds.data.numpy())
-                test_true += list(true.data.numpy())
+                true = torch.max(y_test, 1)[1].to("cpu")
+                test_preds = list(preds.data.numpy())
+                test_true = list(true.data.numpy())
+                
 
             # Compute accuracies
             train_acc_cur = accuracy_score(train_true, train_preds)
