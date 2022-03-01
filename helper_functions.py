@@ -5,17 +5,22 @@ from sklearn.model_selection import KFold
 from paper_network import Network
 
 
-def one_hot(array):
+def one_hot(array, nb_subs=None, separated=False):
     unique, inverse = np.unique(array, return_inverse=True)
     onehot = np.eye(unique.shape[0])[inverse]
+    if separated:
+        onehot = onehot.reshape(nb_subs, -1, len(unique))
     return onehot, unique
 
 
-def select_channels(channel_list, X, electrodes):
-    return X[:, np.isin(electrodes, channel_list), :]
+def select_channels(channel_list, X, electrodes, separated=False):
+    if separated:
+        return X[:, :, np.isin(electrodes, channel_list), :]
+    else:
+        return X[:, np.isin(electrodes, channel_list), :]
 
 
-def cross_validation_1_layer(X, y, K, lr=1e-5, batch_size=64, num_epochs=2000, minibatch=True, output_file=None):
+def cross_validation_1_layer(X, y, K, lr=1e-5, batch_size=64, num_epochs=2000, minibatch=True, separated=True, output_file=None):
 
     CV = KFold(n_splits=K, shuffle=True, random_state=12)
 
@@ -24,10 +29,31 @@ def cross_validation_1_layer(X, y, K, lr=1e-5, batch_size=64, num_epochs=2000, m
     losses = np.zeros((K, num_epochs))
     train_conf = np.zeros((K, 4, 4))
     test_conf = np.zeros((K, 4, 4))
-
-    for i, (train_index, test_index) in enumerate(CV.split(X)):
-        X_train, y_train = X[train_index, :, :], y[train_index, :]
-        X_test, y_test = X[test_index, :, :], y[test_index, :]
+    
+    # Making the CV dependent on the shape of X which differs depending on 'separated'
+    if separated:
+        split_gen = CV.split(np.zeros((X.shape[1], 1)))
+    
+    else:    
+        split_gen = CV.split(X)
+    
+    for i, (train_index, test_index) in enumerate(split_gen):
+        
+        if separated:
+            # Taking train and test slices over subjects 
+            X_train, y_train = X[:, train_index, :, :], y[:, train_index]
+            X_test, y_test = X[:, test_index, :, :], y[:, test_index]
+            
+            # Reshaping arrays to have all observations in first dimension
+            X_train = X_train.reshape(-1, X.shape[2], X.shape[3])
+            y_train = y_train.reshape(-1, 4)
+            
+            X_test = X_test.reshape(-1, X.shape[2], X.shape[3])
+            y_test = y_test.reshape(-1, 4)
+        
+        else:
+            X_train, y_train = X[train_index, :, :], y[train_index, :]
+            X_test, y_test = X[test_index, :, :], y[test_index, :]
 
         model = Network()
         criterion = torch.nn.CrossEntropyLoss()
