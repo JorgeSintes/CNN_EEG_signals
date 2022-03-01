@@ -15,7 +15,11 @@ def main():
     minibatch = False
     batch_size = 64
     num_epochs = 2000
-    run_name = f'_lr_{lr}_bs_{batch_size}'
+    if minibatch:
+        run_name = f'_lr_{lr}_bs_{batch_size}'
+    else:
+        run_name = f'_lr_{lr}_nobs'
+
     file = open("./results/log"+run_name+".txt", "w")
 
     X = np.load("./data/filtered_data/signals.npy")
