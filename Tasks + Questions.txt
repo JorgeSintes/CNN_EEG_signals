@@ -9,3 +9,9 @@ Tasks:
 Questions for Michael:
 
 - Check if batch norm is performed correctly
+
+
+Hypotheses for overfitting:
+ - Dropout not deactivated in eval mode -> should be covered with model.eval() - try also setting inplace=False in dropouts (just in case)
+ - Too small batchsize
+ 
