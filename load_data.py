@@ -108,12 +108,23 @@ def load_data(path="./data/raw_data/",
             targets_separated[subject_90,:] = t_temp[keep]
             subject_90 += 1
 
+    X_ordered = np.zeros((X_separated.shape[0], 84, no_channels, t*Fs))
+
+    for i, X_slice in enumerate(X_separated):
+        X_ordered[i,:21,:,:] = X_slice[targets_separated[i] == 'L',:,:][:21, :, :]
+        X_ordered[i,21:42,:,:] = X_slice[targets_separated[i] == 'R',:,:][:21, :, :]
+        X_ordered[i,42:63,:,:] = X_slice[targets_separated[i] == 'LR',:,:][:21, :, :]
+        X_ordered[i,63:84,:,:] = X_slice[targets_separated[i] == 'F',:,:][:21, :, :]
+
+    targets_ordered = np.repeat(np.repeat(['L','R','LR','F'], 21).reshape(1,-1),X_separated.shape[0], axis=0)
     electrodes_filtered = [el.replace('.', '') for el in electrodes]
 
     np.save("./data/filtered_data/signals", X_final)
     np.save("./data/filtered_data/targets", targets_final)
     np.save("./data/filtered_data/signals_separated", X_separated)
     np.save("./data/filtered_data/targets_separated", targets_separated)
+    np.save("./data/filtered_data/signals_ordered", X_ordered)
+    np.save("./data/filtered_data/targets_ordered", targets_ordered)
     np.save("./data/filtered_data/electrodes", electrodes_filtered)
 
 

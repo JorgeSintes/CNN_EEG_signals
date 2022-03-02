@@ -14,4 +14,6 @@ Questions for Michael:
 Hypotheses for overfitting:
  - Dropout not deactivated in eval mode -> should be covered with model.eval() - try also setting inplace=False in dropouts (just in case)
  - Too small batchsize
- 
+ - Data loading could be done incorrectly?
+ - Could be that there's class imbalance between train and test
+ - Keep 21 classes 

@@ -1,15 +1,15 @@
 import numpy as np
 import torch
 from sklearn.metrics import confusion_matrix, accuracy_score
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, StratifiedKFold
 from paper_network import Network
 
 
-def one_hot(array, nb_subs=None, separated=False):
+def one_hot(array, separated=False):
     unique, inverse = np.unique(array, return_inverse=True)
     onehot = np.eye(unique.shape[0])[inverse]
     if separated:
-        onehot = onehot.reshape(nb_subs, -1, len(unique))
+        onehot = onehot.reshape(array.shape[0], -1, len(unique))
     return onehot, unique
 
 
@@ -20,9 +20,11 @@ def select_channels(channel_list, X, electrodes, separated=False):
         return X[:, np.isin(electrodes, channel_list), :]
 
 
-def cross_validation_1_layer(X, y, K, lr=1e-5, wd=1, batch_size=64, num_epochs=2000, minibatch=True, separated=True, output_file=None):
-
-    CV = KFold(n_splits=K, shuffle=True, random_state=12)
+def cross_validation_1_layer(X, y_pre, K, lr=1e-5, wd=1, batch_size=64, num_epochs=2000, minibatch=True, separated=True, ordered=True, output_file=None):
+    if ordered:
+        CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
+    else:
+        CV = KFold(n_splits=K, shuffle=True, random_state=12)
 
     train_acc = np.zeros((K, num_epochs))
     test_acc = np.zeros((K, num_epochs))
@@ -30,8 +32,13 @@ def cross_validation_1_layer(X, y, K, lr=1e-5, wd=1, batch_size=64, num_epochs=2
     train_conf = np.zeros((K, 4, 4))
     test_conf = np.zeros((K, 4, 4))
 
+    y, encoding = one_hot(y_pre, separated=separated)
+    y = torch.from_numpy(y)
+
     # Making the CV dependent on the shape of X which differs depending on 'separated'
-    if separated:
+    if ordered:
+        split_gen = CV.split(np.zeros((X.shape[1], 1)), y_pre[0,:])
+    elif separated:
         split_gen = CV.split(np.zeros((X.shape[1], 1)))
 
     else:
