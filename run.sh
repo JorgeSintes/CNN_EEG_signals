@@ -1,7 +1,7 @@
 ### –- specify queue --
 #BSUB -q gpuv100
 ### -- set the job Name --
-#BSUB -J CNN10_5
+#BSUB -J CNN
 ### -- ask for number of cores (default: 1) --
 #BSUB -n 1
 ### -- Select the resources: 1 gpu in exclusive process mode --
