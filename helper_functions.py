@@ -5,26 +5,31 @@ from sklearn.model_selection import KFold, StratifiedKFold
 from paper_network import Network
 
 
-def one_hot(array, separated=False):
+def one_hot(array):
     unique, inverse = np.unique(array, return_inverse=True)
     onehot = np.eye(unique.shape[0])[inverse]
-    if separated:
-        onehot = onehot.reshape(array.shape[0], -1, len(unique))
+    onehot = onehot.reshape(array.shape[0], -1, len(unique))
     return onehot, unique
 
 
-def select_channels(channel_list, X, electrodes, separated=False):
-    if separated:
-        return X[:, :, np.isin(electrodes, channel_list), :]
-    else:
-        return X[:, np.isin(electrodes, channel_list), :]
+def select_channels(channel_tuple, X, electrodes):
+    return X[:, np.isin(electrodes, channel_tuple), :]
 
 
-def cross_validation_1_layer(X, y_pre, K, lr=1e-5, wd=1, batch_size=64, num_epochs=2000, minibatch=True, separated=True, ordered=True, output_file=None):
-    if ordered:
-        CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
-    else:
-        CV = KFold(n_splits=K, shuffle=True, random_state=12)
+def channel_trick(X, y, channel_list, electrodes):
+    X_new = torch.zeros(X.shape[0]*len(channel_list), 2, X.shape[2])
+    y_new = torch.zeros(X.shape[0]*len(channel_list), 4)
+
+    for row, target in zip(X,y):
+        for i,channels in enumerate(channel_list):
+            X_new[i,:,:] = row[np.isin(electrodes, channels), :]
+            y_new[i,:] = target
+
+    return X_new, y_new
+
+
+def cross_validation_1_layer(X, y_pre, channel_list, electrodes, K, lr=1e-5, wd=1, batch_size=64, num_epochs=2000, minibatch=True, output_file=None):
+    CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
 
     train_acc = np.zeros((K, num_epochs))
     test_acc = np.zeros((K, num_epochs))
@@ -32,35 +37,37 @@ def cross_validation_1_layer(X, y_pre, K, lr=1e-5, wd=1, batch_size=64, num_epoc
     train_conf = np.zeros((K, 4, 4))
     test_conf = np.zeros((K, 4, 4))
 
-    y, encoding = one_hot(y_pre, separated=separated)
+    y, encoding = one_hot(y_pre)
     y = torch.from_numpy(y)
 
     # Making the CV dependent on the shape of X which differs depending on 'separated'
-    if ordered:
-        split_gen = CV.split(np.zeros((X.shape[1], 1)), y_pre[0,:])
-    elif separated:
-        split_gen = CV.split(np.zeros((X.shape[1], 1)))
-
-    else:
-        split_gen = CV.split(X)
+    split_gen = CV.split(np.zeros((X.shape[1], 1)), y_pre[0,:])
 
     for i, (train_index, test_index) in enumerate(split_gen):
 
-        if separated:
-            # Taking train and test slices over subjects 
-            X_train, y_train = X[:, train_index, :, :], y[:, train_index]
-            X_test, y_test = X[:, test_index, :, :], y[:, test_index]
+        # Taking train and test slices over subjects 
+        X_train, y_train = X[:, train_index, :, :], y[:, train_index]
+        X_test, y_test = X[:, test_index, :, :], y[:, test_index]
 
-            # Reshaping arrays to have all observations in first dimension
-            X_train = X_train.reshape(-1, X.shape[2], X.shape[3])
-            y_train = y_train.reshape(-1, 4)
+        # Reshaping arrays to have all observations in first dimension
+        X_train = X_train.reshape(-1, X.shape[2], X.shape[3])
+        y_train = y_train.reshape(-1, 4)
 
-            X_test = X_test.reshape(-1, X.shape[2], X.shape[3])
-            y_test = y_test.reshape(-1, 4)
+        X_test = X_test.reshape(-1, X.shape[2], X.shape[3])
+        y_test = y_test.reshape(-1, 4)
 
-        else:
-            X_train, y_train = X[train_index, :, :], y[train_index, :]
-            X_test, y_test = X[test_index, :, :], y[test_index, :]
+        # Standardising
+        mu = torch.mean(X_train, dim=(0,2)).reshape(1,-1,1)
+        sigma = torch.std(X_train, dim=(0,2)).reshape(1,-1,1)
+        X_train = (X_train - mu) / sigma
+        X_test  = (X_test - mu) / sigma
+
+        X_test_copy = X_test.clone().detach()
+        y_test_copy = y_test.clone().detach()
+
+        # Grouping the desired channels in 2 by 2 pairs
+        X_train, y_train = channel_trick(X_train, y_train, channel_list, electrodes)
+        X_test, y_test = channel_trick(X_test, y_test, channel_list, electrodes)
 
         model = Network()
         criterion = torch.nn.CrossEntropyLoss()
@@ -75,6 +82,8 @@ def cross_validation_1_layer(X, y_pre, K, lr=1e-5, wd=1, batch_size=64, num_epoc
                 y_train,
                 X_test,
                 y_test,
+                X_test_copy,
+                y_test_copy,
                 batch_size,
                 num_epochs,
                 transfer_to_device=True,
@@ -91,6 +100,8 @@ def train_test_model(model,
                      y_train,
                      X_test,
                      y_test,
+                     X_test_copy,
+                     y_test_copy,
                      batch_size=100,
                      num_epochs=10,
                      transfer_to_device=True,
