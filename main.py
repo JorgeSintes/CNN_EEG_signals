@@ -12,12 +12,12 @@ def main():
     channel_list = [('Fc1','Fc2'),('Fc3','Fc4'),('Fc5','Fc6'),('C1','C2'),('C3','C4'),
                     ('C5','C6'),('Cp1','Cp2'),('Cp3','Cp4'),('Cp5','Cp6')]
     K = 10
-    lr = 1e-5
+    lr = 1e-3
     wd = 0
     minibatch = False
     batch_size = 64
     num_epochs = 2000
-    nb_subs = 10
+    nb_subs = 2
 
     if len(channel_list) == 9:
         channel_name = 'all'

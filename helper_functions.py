@@ -20,10 +20,10 @@ def channel_trick(X, y, channel_list, electrodes):
     X_new = torch.zeros(X.shape[0]*len(channel_list), 2, X.shape[2])
     y_new = torch.zeros(X.shape[0]*len(channel_list), 4)
 
-    for row, target in zip(X,y):
-        for i,channels in enumerate(channel_list):
-            X_new[i,:,:] = row[np.isin(electrodes, channels), :]
-            y_new[i,:] = target
+    for i, (row, target) in enumerate(zip(X,y)):
+        for j,channels in enumerate(channel_list):
+            X_new[len(channel_list)*i+j,:,:] = row[np.isin(electrodes, channels), :]
+            y_new[len(channel_list)*i+j,:] = target
 
     return X_new, y_new
 
@@ -197,7 +197,6 @@ def train_test_model(model,
                 true = torch.max(y_test, 1)[1].to("cpu")
                 test_preds = list(preds.data.numpy())
                 test_true = list(true.data.numpy())
-
 
             # Compute accuracies
             train_acc_cur = accuracy_score(train_true, train_preds)
