@@ -93,10 +93,8 @@ class Network(torch.nn.Module):
                                    stride=(1, 2),
                                    padding=0)
 
-        self.fc = nn.Sequential(
-            # L11
-            nn.Linear(in_features=800, out_features=4),
-            nn.Softmax(dim=1))
+        # L11
+        self.fc = nn.Linear(in_features=800, out_features=4)
 
     def forward(self, x):
         x = x.view(-1, 1, 2, 640)

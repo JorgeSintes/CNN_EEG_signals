@@ -171,6 +171,7 @@ def train_test_model(model,
                 # First on training set
                 for x, y in zip(X_train_batches, y_train_batches):
                     out = model(x)
+                    out = torch.nn.functional.softmax(out, dim=1)
                     preds = torch.max(out, 1)[1].to("cpu")
                     true = torch.max(y, 1)[1].to("cpu")
                     train_preds += list(preds.data.numpy())
@@ -179,6 +180,7 @@ def train_test_model(model,
                 # Then on test
                 for x, y in zip(X_test_batches, y_test_batches):
                     out = model(x)
+                    out = torch.nn.functional.softmax(out, dim=1)
                     preds = torch.max(out, 1)[1].to("cpu")
                     true = torch.max(y, 1)[1].to("cpu")
                     test_preds += list(preds.data.numpy())
@@ -187,12 +189,14 @@ def train_test_model(model,
             else:
 
                 out = model(X_train)
+                out = torch.nn.functional.softmax(out, dim=1)
                 preds = torch.max(out, 1)[1].to("cpu")
                 true = torch.max(y_train, 1)[1].to("cpu")
                 train_preds = list(preds.data.numpy())
                 train_true = list(true.data.numpy())
 
                 out = model(X_test)
+                out = torch.nn.functional.softmax(out, dim=1)
                 preds = torch.max(out, 1)[1].to("cpu")
                 true = torch.max(y_test, 1)[1].to("cpu")
                 test_preds = list(preds.data.numpy())
