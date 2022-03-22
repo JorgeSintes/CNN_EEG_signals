@@ -35,9 +35,9 @@ class Network(torch.nn.Module):
                       stride=1,
                       padding=0),
             nn.LeakyReLU(),
-            nn.Dropout2d(
-                p=0.5,
-                inplace=True),  #I think inplace should be set to True here
+            # nn.Dropout2d(
+            #     p=0.5,
+            #     inplace=True),  #I think inplace should be set to True here
         )
         self.conv_L3 = nn.Sequential(
             nn.Conv2d(in_channels=self.nb_kernels_c1,
@@ -45,7 +45,7 @@ class Network(torch.nn.Module):
                       kernel_size=self.kernel_size_c2,
                       stride=1,
                       padding=0),
-            nn.BatchNorm2d(num_features=self.nb_kernels_c2),
+            # nn.BatchNorm2d(num_features=self.nb_kernels_c2),
             nn.LeakyReLU())
         # L4
         self.mp_L4 = nn.MaxPool2d(kernel_size=self.kernel_size_m1,
@@ -59,7 +59,7 @@ class Network(torch.nn.Module):
                       stride=1,
                       padding=0),
             nn.LeakyReLU(),
-            nn.Dropout2d(p=0.5, inplace=True))
+            # nn.Dropout2d(p=0.5, inplace=True))
 
         self.mp_L6 = nn.MaxPool2d(kernel_size=self.kernel_size_m2,
                                   stride=(1, 3),
@@ -71,9 +71,9 @@ class Network(torch.nn.Module):
                       kernel_size=self.kernel_size_c4,
                       stride=1,
                       padding=0),
-            nn.BatchNorm2d(num_features=self.nb_kernels_c4),
+            # nn.BatchNorm2d(num_features=self.nb_kernels_c4),
             nn.LeakyReLU(),
-            nn.Dropout2d(p=0.5, inplace=True),
+            # nn.Dropout2d(p=0.5, inplace=True),
         )
 
         self.mp_L8 = nn.MaxPool2d(kernel_size=self.kernel_size_m3,
@@ -86,7 +86,7 @@ class Network(torch.nn.Module):
                       kernel_size=self.kernel_size_c5,
                       stride=1,
                       padding=0),
-            nn.BatchNorm2d(num_features=self.nb_kernels_c5),
+            # nn.BatchNorm2d(num_features=self.nb_kernels_c5),
             nn.LeakyReLU())
 
         self.mp_L10 = nn.MaxPool2d(kernel_size=self.kernel_size_m4,
