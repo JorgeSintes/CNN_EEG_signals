@@ -59,7 +59,8 @@ class Network(torch.nn.Module):
                       stride=1,
                       padding=0),
             nn.LeakyReLU(),
-            # nn.Dropout2d(p=0.5, inplace=True))
+            # nn.Dropout2d(p=0.5, inplace=True)
+            )
 
         self.mp_L6 = nn.MaxPool2d(kernel_size=self.kernel_size_m2,
                                   stride=(1, 3),
