@@ -51,10 +51,9 @@ def load_data(path="./data/raw_data/",
 
             # Needed parameters
             annotations = file.readAnnotations()[2]
+            len_chunks = file.readAnnotations()[1] * Fs
             chop_times = file.readAnnotations()[0] * Fs
-            chunks = min(
-                len(annotations) // 2,
-                max_chunks)  ### (only take those chunks with T1 or T2)
+            chunks = min(len(annotations) // 2, max_chunks)  ### (only take those chunks with T1 or T2)
 
             electrodes = file.getSignalLabels()
 
@@ -68,19 +67,10 @@ def load_data(path="./data/raw_data/",
                 targets[subject, run, i] = get_label(annotations[2 * i + 1],
                                                      run_name)
                 chop_time = int(chop_times[2 * i + 1])
+                len_chunk = int(len_chunks[2 * 1 + 1])
+                next_chop_time = min(chop_time + len_chunk, chop_time + t*Fs)
                 # This long function is just in case the signal_2d is shorter than t*Fs, we append 0 until it reaches the size
-                X[subject, run, i, :, :] = np.append(
-                    signal_2d[:, chop_time:(chop_time + t * Fs)],
-                    np.zeros((
-                        no_channels,
-                        max(
-                            t * Fs - signal_2d[:, chop_time:(chop_time +
-                                                             t * Fs)].shape[1],
-                            0,
-                        ),
-                    )),
-                    axis=1,
-                )
+                X[subject, run, i, :, :] = np.append(signal_2d[:, chop_time:next_chop_time],np.zeros((no_channels, max(t* Fs - signal_2d[:, chop_time:next_chop_time].shape[1],0))),axis=1)
 
             file.close()
 
