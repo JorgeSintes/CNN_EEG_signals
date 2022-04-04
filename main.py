@@ -10,17 +10,17 @@ def main():
     #     load_data()
 
     K = 10
-    lr = 1e-4
+    lr = 1e-5
     wd = 0
     minibatch = True
-    batch_size = 32
-    num_epochs = 2000
-    nb_subs = 10
+    batch_size = 64
+    num_epochs = 200
+    nb_subs = 20
 
     if minibatch:
-        run_name = f'new_net_lr_{lr}_bs_{batch_size}'
+        run_name = f'new_net_lr_{lr}_bs_{batch_size}_subs_{nb_subs}_epochs_{num_epochs}'
     else:
-        run_name = f'_lr_{lr}_nobs_ch_{channel_name}'
+        run_name = f'new_net_lr_{lr}_nobs_subs_{nb_subs}_epochs_{num_epochs}'
 
     file = open("./results/log"+run_name+".txt", "w")
 
