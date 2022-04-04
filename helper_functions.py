@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.model_selection import KFold, StratifiedKFold
-from paper_network import Network
+from paper_network import CNN
 
 
 def one_hot(array):
@@ -28,7 +28,7 @@ def channel_trick(X, y, channel_list, electrodes):
     return X_new, y_new
 
 
-def cross_validation_1_layer(X, y_pre, channel_list, electrodes, K, lr=1e-5, wd=1, batch_size=64, num_epochs=2000, minibatch=True, output_file=None):
+def cross_validation_1_layer(X, y_pre, electrodes, K, lr=1e-5, wd=1, batch_size=64, num_epochs=2000, minibatch=True, output_file=None):
     CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
 
     train_acc = np.zeros((K, num_epochs))
@@ -66,10 +66,10 @@ def cross_validation_1_layer(X, y_pre, channel_list, electrodes, K, lr=1e-5, wd=
         y_test_copy = y_test.clone().detach()
 
         # Grouping the desired channels in 2 by 2 pairs
-        X_train, y_train = channel_trick(X_train, y_train, channel_list, electrodes)
-        X_test, y_test = channel_trick(X_test, y_test, channel_list, electrodes)
+        # X_train, y_train = channel_trick(X_train, y_train, channel_list, electrodes)
+        # X_test, y_test = channel_trick(X_test, y_test, channel_list, electrodes)
 
-        model = Network()
+        model = CNN()
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
 
