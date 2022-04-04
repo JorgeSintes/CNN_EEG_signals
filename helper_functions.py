@@ -46,8 +46,8 @@ def cross_validation_1_layer(X, y_pre, channel_list, electrodes, K, lr=1e-5, wd=
     for i, (train_index, test_index) in enumerate(split_gen):
 
         # Taking train and test slices over subjects 
-        X_train, y_train = X[:, train_index, :, :], y[:, train_index]
-        X_test, y_test = X[:, test_index, :, :], y[:, test_index]
+        X_train, y_train = X[:, train_index, :, :], y[:, train_index, :]
+        X_test, y_test = X[:, test_index, :, :], y[:, test_index, :]
 
         # Reshaping arrays to have all observations in first dimension
         X_train = X_train.reshape(-1, X.shape[2], X.shape[3])
@@ -92,6 +92,7 @@ def cross_validation_1_layer(X, y_pre, channel_list, electrodes, K, lr=1e-5, wd=
 
     return train_acc, test_acc, losses, train_conf, test_conf
 
+# TODO: Test on individual pairs of channels, not only on the entire test set
 
 def train_test_model(model,
                      criterion,
