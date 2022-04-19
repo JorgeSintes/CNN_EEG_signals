@@ -1,5 +1,4 @@
-import torch
-import torch.nn as nn
+import torch import torch.nn as nn
 
 class CNN(torch.nn.Module):
     def __init__(self):
@@ -18,24 +17,33 @@ class CNN(torch.nn.Module):
         self.linear_mid = 80
         self.linear_out = 4
 
-        self.t_conv = nn.Conv2d(in_channels=1,
+        self.t_conv = nn.Sequential(
+                      nn.Conv2d(in_channels=1,
                                 out_channels = self.nb_kernels_t_conv,
                                 kernel_size = self.kernel_size_t_conv,
                                 stride = 1,
-                                padding = 'same')
+                                padding = 'same'),
+                      nn.ReLU(),
+                      )
 
-        self.s_conv = nn.Conv2d(in_channels = self.nb_kernels_t_conv,
+        self.s_conv = nn.Sequential(
+                      nn.Conv2d(in_channels = self.nb_kernels_t_conv,
                                 out_channels = self.nb_kernels_s_conv,
                                 kernel_size = self.kernel_size_s_conv,
                                 stride = 1,
-                                padding = 0)
+                                padding = 'valid'),
+                      nn.ReLU(),
+                      )
 
-        self.pool = nn.MaxPool2d(kernel_size = self.kernel_size_pool,
+        self.pool = nn.AvgPool2d(kernel_size = self.kernel_size_pool,
                                  stride = self.kernel_size_pool,
-                                 padding = 0)
+                                 padding = 'valid')
 
-        self.fc1 = nn.Linear(in_features = self.linear_in,
-                             out_features = self.linear_mid)
+        self.fc1 = nn.Sequential(
+                      nn.Linear(in_features = self.linear_in,
+                                out_features = self.linear_mid),
+                      nn.ReLU(),
+                      )
 
         self.fc2 = nn.Linear(in_features = self.linear_mid,
                              out_features = self.linear_out)
