@@ -1,4 +1,5 @@
-import torch import torch.nn as nn
+import torch
+import torch.nn as nn
 
 class CNN(torch.nn.Module):
     def __init__(self):
@@ -37,7 +38,7 @@ class CNN(torch.nn.Module):
 
         self.pool = nn.AvgPool2d(kernel_size = self.kernel_size_pool,
                                  stride = self.kernel_size_pool,
-                                 padding = 'valid')
+                                 padding = 0)
 
         self.fc1 = nn.Sequential(
                       nn.Linear(in_features = self.linear_in,

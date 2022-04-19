@@ -9,18 +9,18 @@ def main():
     # if not os.path.isfile("./data/filtered_data/signals.npy") and not os.path.isfile("./data/filtered_data/targets.npy"):
     #     load_data()
 
-    K = 10
+    K = 5
     lr = 1e-5
     wd = 0
     minibatch = True
-    batch_size = 64
+    batch_size = 16
     num_epochs = 200
-    nb_subs = 20
+    nb_subs = -1
 
     if minibatch:
-        run_name = f'new_net_lr_{lr}_bs_{batch_size}_subs_{nb_subs}_epochs_{num_epochs}'
+        run_name = f'_new_net_lr_{lr}_bs_{batch_size}_subs_{nb_subs}_epochs_{num_epochs}'
     else:
-        run_name = f'new_net_lr_{lr}_nobs_subs_{nb_subs}_epochs_{num_epochs}'
+        run_name = f'_new_net_lr_{lr}_nobs_subs_{nb_subs}_epochs_{num_epochs}'
 
     file = open("./results/log"+run_name+".txt", "w")
 
