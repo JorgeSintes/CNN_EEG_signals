@@ -18,13 +18,19 @@ def get_label(annotation, run_name):
             return "F"
         else:
             return "error"
+        
+    elif run_name == "R01":
+        if annotation == "T0":
+            return "0"
+        else:
+            return "error"
 
 
 def load_data(path="./data/raw_data/",
               no_of_subjects=109,
               Fs=160,
               no_channels=64,
-              t=4,
+              t=6,
               max_chunks=19):
 
     # t is the time at which the signal will be cut. Most of them last around 4.1-4.2 s.
@@ -51,26 +57,35 @@ def load_data(path="./data/raw_data/",
 
             # Needed parameters
             annotations = file.readAnnotations()[2]
-            len_chunks = file.readAnnotations()[1] * Fs
-            chop_times = file.readAnnotations()[0] * Fs
-            chunks = min(len(annotations) // 2, max_chunks)  ### (only take those chunks with T1 or T2)
+            
+            if len(annotations) == 1:
+                
+                pass
+                
+            else:
+                
+                len_chunks = file.readAnnotations()[1] * Fs
+                chop_times = file.readAnnotations()[0] * Fs
+                chunks = min(len(annotations) // 2, max_chunks)  ### (only take those chunks with T1 or T2)
+    
+                electrodes = file.getSignalLabels()
+    
+                # Get 2d matrix of signals
+                signal_2d = np.zeros((file.signals_in_file, file.getNSamples()[0]))
+                for channel in range(file.signals_in_file):
+                    signal_2d[channel, :] = file.readSignal(channel)
+    
+                # Get labels
+                for i in range(chunks-1):
+                    targets[subject, run, i] = get_label(annotations[2 * i + 1],
+                                                         run_name)
+                    chop_time = int(chop_times[2 * i + 1])-Fs
+                    len_chunk = int(len_chunks[2 * 1 + 1])
+                    next_chop_time = chop_time + t*Fs
+                    # This long function is just in case the signal_2d is shorter than t*Fs, we append 0 until it reaches the size
+                    X[subject, run, i, :, :] = signal_2d[:, chop_time:next_chop_time]
+                    #X[subject, run, i, :, :] = np.append(signal_2d[:, chop_time:next_chop_time],np.zeros((no_channels, max(t* Fs - signal_2d[:, chop_time:next_chop_time].shape[1],0))),axis=1)
 
-            electrodes = file.getSignalLabels()
-
-            # Get 2d matrix of signals
-            signal_2d = np.zeros((file.signals_in_file, file.getNSamples()[0]))
-            for channel in range(file.signals_in_file):
-                signal_2d[channel, :] = file.readSignal(channel)
-
-            # Get labels
-            for i in range(chunks):
-                targets[subject, run, i] = get_label(annotations[2 * i + 1],
-                                                     run_name)
-                chop_time = int(chop_times[2 * i + 1])
-                len_chunk = int(len_chunks[2 * 1 + 1])
-                next_chop_time = min(chop_time + len_chunk, chop_time + t*Fs)
-                # This long function is just in case the signal_2d is shorter than t*Fs, we append 0 until it reaches the size
-                X[subject, run, i, :, :] = np.append(signal_2d[:, chop_time:next_chop_time],np.zeros((no_channels, max(t* Fs - signal_2d[:, chop_time:next_chop_time].shape[1],0))),axis=1)
 
             file.close()
 
@@ -109,13 +124,13 @@ def load_data(path="./data/raw_data/",
     targets_ordered = np.repeat(np.repeat(['L','R','LR','F'], 21).reshape(1,-1),X_separated.shape[0], axis=0)
     electrodes_filtered = [el.replace('.', '') for el in electrodes]
 
-    np.save("./data/filtered_data/signals", X_final)
-    np.save("./data/filtered_data/targets", targets_final)
-    np.save("./data/filtered_data/signals_separated", X_separated)
-    np.save("./data/filtered_data/targets_separated", targets_separated)
-    np.save("./data/filtered_data/signals_ordered", X_ordered)
-    np.save("./data/filtered_data/targets_ordered", targets_ordered)
-    np.save("./data/filtered_data/electrodes", electrodes_filtered)
+    # np.save("./data/filtered_data/signals", X_final)
+    # np.save("./data/filtered_data/targets", targets_final)
+    # np.save("./data/filtered_data/signals_separated", X_separated)
+    # np.save("./data/filtered_data/targets_separated", targets_separated)
+    # np.save("./data/filtered_data/signals_ordered", X_ordered)
+    # np.save("./data/filtered_data/targets_ordered", targets_ordered)
+    # np.save("./data/filtered_data/electrodes", electrodes_filtered)
 
 
 if __name__ == "__main__":
