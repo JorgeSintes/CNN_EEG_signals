@@ -31,7 +31,7 @@ def load_data(path="./data/raw_data/",
               Fs=160,
               no_channels=64,
               t=6,
-              max_chunks=19):
+              max_chunks=21):
 
     # t is the time at which the signal will be cut. Most of them last around 4.1-4.2 s.
     # but some of them are shorter and have to be padded with zeros so that all of them

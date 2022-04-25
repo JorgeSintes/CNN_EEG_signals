@@ -28,14 +28,14 @@ def channel_trick(X, y, channel_list, electrodes):
     return X_new, y_new
 
 
-def cross_validation_1_layer(X, y_pre, electrodes, K, lr=1e-5, wd=1, batch_size=64, num_epochs=2000, minibatch=True, output_file=None):
+def cross_validation_1_layer(X, y_pre, electrodes, K, lr=1e-5, wd=1, batch_size=64, num_epochs=2000, nb_classes=4, minibatch=True, output_file=None):
     CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
 
     train_acc = np.zeros((K, num_epochs))
     test_acc = np.zeros((K, num_epochs))
     losses = np.zeros((K, num_epochs))
-    train_conf = np.zeros((K, 4, 4))
-    test_conf = np.zeros((K, 4, 4))
+    train_conf = np.zeros((K, nb_classes, nb_classes))
+    test_conf = np.zeros((K, nb_classes, nb_classes))
 
     y, encoding = one_hot(y_pre)
     y = torch.from_numpy(y)
@@ -69,7 +69,7 @@ def cross_validation_1_layer(X, y_pre, electrodes, K, lr=1e-5, wd=1, batch_size=
         # X_train, y_train = channel_trick(X_train, y_train, channel_list, electrodes)
         # X_test, y_test = channel_trick(X_test, y_test, channel_list, electrodes)
 
-        model = CNN()
+        model = CNN(nb_classes, X.shape[3])
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
 

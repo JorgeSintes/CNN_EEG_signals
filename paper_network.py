@@ -2,10 +2,11 @@ import torch
 import torch.nn as nn
 
 class CNN(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, nb_classes, n):
         super(CNN, self).__init__()
 
-        N = 160*4
+        #N = 160*4
+        self.n = n
         self.nb_kernels_t_conv = 40
         self.kernel_size_t_conv = (1,30)
 
@@ -14,9 +15,9 @@ class CNN(torch.nn.Module):
 
         self.kernel_size_pool = (1, 15)
 
-        self.linear_in = 40*(N//15)
+        self.linear_in = 40*(self.n//15)
         self.linear_mid = 80
-        self.linear_out = 4
+        self.linear_out = nb_classes
 
         self.t_conv = nn.Sequential(
                       nn.Conv2d(in_channels=1,
@@ -51,7 +52,7 @@ class CNN(torch.nn.Module):
 
     def forward(self, x):
         # print(x.shape)
-        x = x.view(-1, 1, 64, 640)
+        x = x.view(-1, 1, 64, self.n)
         # print(x.shape)
         x = self.t_conv(x)
         # print('After t_conv:', x.shape)
@@ -59,7 +60,7 @@ class CNN(torch.nn.Module):
         # print('After s_conv:', x.shape)
         x = self.pool(x)
         # print('After pool:', x.shape)
-        x = x.view(-1, 40*(640//15))
+        x = x.view(-1, 40*(self.n//15))
         # print('After flatten:', x.shape)
         x = self.fc1(x)
         # print('After fc1:', x.shape)
