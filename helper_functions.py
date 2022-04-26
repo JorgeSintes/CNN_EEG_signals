@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.model_selection import KFold, StratifiedKFold
-from paper_network import Network
+from paper_network import CNN
 
 
 def one_hot(array):
@@ -16,26 +16,14 @@ def select_channels(channel_tuple, X, electrodes):
     return X[:, np.isin(electrodes, channel_tuple), :]
 
 
-def channel_trick(X, y, channel_list, electrodes):
-    X_new = torch.zeros(X.shape[0]*len(channel_list), 2, X.shape[2])
-    y_new = torch.zeros(X.shape[0]*len(channel_list), 4)
-
-    for i, (row, target) in enumerate(zip(X,y)):
-        for j,channels in enumerate(channel_list):
-            X_new[len(channel_list)*i+j,:,:] = row[np.isin(electrodes, channels), :]
-            y_new[len(channel_list)*i+j,:] = target
-
-    return X_new, y_new
-
-
-def cross_validation_1_layer(X, y_pre, channel_list, electrodes, K, lr=1e-5, wd=1, batch_size=64, num_epochs=2000, minibatch=True, output_file=None):
+def cross_validation_1_layer(X, y_pre, electrodes, K, lr=1e-5, wd=0, batch_size=64, num_epochs=2000, nb_classes=4, minibatch=True, output_file=None):
     CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
 
     train_acc = np.zeros((K, num_epochs))
     test_acc = np.zeros((K, num_epochs))
     losses = np.zeros((K, num_epochs))
-    train_conf = np.zeros((K, 4, 4))
-    test_conf = np.zeros((K, 4, 4))
+    train_conf = np.zeros((K, nb_classes, nb_classes))
+    test_conf = np.zeros((K, nb_classes, nb_classes))
 
     y, encoding = one_hot(y_pre)
     y = torch.from_numpy(y)
@@ -51,10 +39,10 @@ def cross_validation_1_layer(X, y_pre, channel_list, electrodes, K, lr=1e-5, wd=
 
         # Reshaping arrays to have all observations in first dimension
         X_train = X_train.reshape(-1, X.shape[2], X.shape[3])
-        y_train = y_train.reshape(-1, 4)
+        y_train = y_train.reshape(-1, nb_classes)
 
         X_test = X_test.reshape(-1, X.shape[2], X.shape[3])
-        y_test = y_test.reshape(-1, 4)
+        y_test = y_test.reshape(-1, nb_classes)
 
         # Standardising
         mu = torch.mean(X_train, dim=(0,2)).reshape(1,-1,1)
@@ -66,10 +54,10 @@ def cross_validation_1_layer(X, y_pre, channel_list, electrodes, K, lr=1e-5, wd=
         y_test_copy = y_test.clone().detach()
 
         # Grouping the desired channels in 2 by 2 pairs
-        X_train, y_train = channel_trick(X_train, y_train, channel_list, electrodes)
-        X_test, y_test = channel_trick(X_test, y_test, channel_list, electrodes)
+        # X_train, y_train = channel_trick(X_train, y_train, channel_list, electrodes)
+        # X_test, y_test = channel_trick(X_test, y_test, channel_list, electrodes)
 
-        model = Network()
+        model = CNN(nb_classes, X.shape[3])
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
 
@@ -141,7 +129,6 @@ def train_test_model(model,
 
             for x, y in zip(X_train_batches, y_train_batches):
                 out = model(x)
-
                 # Compute Loss and gradients
                 batch_loss = criterion(out, y)
                 optimizer.zero_grad()
