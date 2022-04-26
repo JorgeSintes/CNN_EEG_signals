@@ -51,10 +51,10 @@ def cross_validation_1_layer(X, y_pre, electrodes, K, lr=1e-5, wd=1, batch_size=
 
         # Reshaping arrays to have all observations in first dimension
         X_train = X_train.reshape(-1, X.shape[2], X.shape[3])
-        y_train = y_train.reshape(-1, 4)
+        y_train = y_train.reshape(-1, nb_classes)
 
         X_test = X_test.reshape(-1, X.shape[2], X.shape[3])
-        y_test = y_test.reshape(-1, 4)
+        y_test = y_test.reshape(-1, nb_classes)
 
         # Standardising
         mu = torch.mean(X_train, dim=(0,2)).reshape(1,-1,1)
@@ -141,7 +141,6 @@ def train_test_model(model,
 
             for x, y in zip(X_train_batches, y_train_batches):
                 out = model(x)
-
                 # Compute Loss and gradients
                 batch_loss = criterion(out, y)
                 optimizer.zero_grad()

@@ -58,7 +58,7 @@ def load_data(path="./data/raw_data/",
             # Open file
             subject_name = f"S{(subject+1):03d}"
             run_name = runs[run]
-            file = pyedflib.EdfReader("C:/Users/cleml/Documents/00000 - Special Course Bayesian Machine Learning/CNN_EEG_signals" + path + subject_name + "/" +
+            file = pyedflib.EdfReader("./" + path + subject_name + "/" +
                                       subject_name + run_name + ".edf")
         
             # Needed parameters
