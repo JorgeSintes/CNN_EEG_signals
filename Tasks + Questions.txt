@@ -17,3 +17,7 @@ Hypotheses for overfitting:
  - Data loading could be done incorrectly?
  - Could be that there's class imbalance between train and test
  - Keep 21 classes 
+
+
+Implement Deep ensemble followed by SWAG   + Look at accuraty and calibration once done
+Save for 50 models
