@@ -2,7 +2,7 @@ from load_data import load_data
 import os
 import numpy as np
 import torch
-from helper_functions import one_hot, select_channels, train_test_model, cross_validation_1_layer
+from helper_functions import one_hot, train_test_model, cross_validation_1_layer
 
 
 def main():

@@ -12,10 +12,6 @@ def one_hot(array):
     return onehot, unique
 
 
-def select_channels(channel_tuple, X, electrodes):
-    return X[:, np.isin(electrodes, channel_tuple), :]
-
-
 def cross_validation_1_layer(X, y_pre, electrodes, K, lr=1e-5, wd=0, batch_size=64, num_epochs=2000, nb_classes=4, minibatch=True, output_file=None):
     CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
 
