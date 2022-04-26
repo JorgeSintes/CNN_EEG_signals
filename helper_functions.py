@@ -16,19 +16,7 @@ def select_channels(channel_tuple, X, electrodes):
     return X[:, np.isin(electrodes, channel_tuple), :]
 
 
-def channel_trick(X, y, channel_list, electrodes):
-    X_new = torch.zeros(X.shape[0]*len(channel_list), 2, X.shape[2])
-    y_new = torch.zeros(X.shape[0]*len(channel_list), 4)
-
-    for i, (row, target) in enumerate(zip(X,y)):
-        for j,channels in enumerate(channel_list):
-            X_new[len(channel_list)*i+j,:,:] = row[np.isin(electrodes, channels), :]
-            y_new[len(channel_list)*i+j,:] = target
-
-    return X_new, y_new
-
-
-def cross_validation_1_layer(X, y_pre, electrodes, K, lr=1e-5, wd=1, batch_size=64, num_epochs=2000, nb_classes=4, minibatch=True, output_file=None):
+def cross_validation_1_layer(X, y_pre, electrodes, K, lr=1e-5, wd=0, batch_size=64, num_epochs=2000, nb_classes=4, minibatch=True, output_file=None):
     CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
 
     train_acc = np.zeros((K, num_epochs))

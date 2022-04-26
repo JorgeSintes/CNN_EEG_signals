@@ -27,9 +27,9 @@ def main():
 
     X = np.load("./data/filtered_data/signals_ordered_6s_all_tags.npy")[:nb_subs, :, :, :]
     y_pre = np.load("./data/filtered_data/targets_ordered_6s_all_tags.npy")[:nb_subs, :]
-    
+
     mask = np.isin(y_pre[0], classes)   # only works if class repartion is the same for all subjects
-    
+
     y_pre = y_pre[:, mask]
     X = X[:, mask, :, :]
 
