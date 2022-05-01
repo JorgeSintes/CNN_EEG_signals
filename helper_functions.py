@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.model_selection import KFold, StratifiedKFold
-from paper_network import CNN
+from paper_network import Ensemble
 
 
 def one_hot(array):
@@ -12,7 +12,7 @@ def one_hot(array):
     return onehot, unique
 
 
-def cross_validation_1_layer(X, y_pre, electrodes, K, lr=1e-5, wd=0, batch_size=64, num_epochs=2000, nb_classes=4, minibatch=True, output_file=None):
+def cross_validation_1_layer(X, y_pre, K, nb_models, lr=1e-5, wd=0, batch_size=64, num_epochs=2000, nb_classes=4, output_file=None, run_name=""):
     CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
 
     train_acc = np.zeros((K, num_epochs))
@@ -46,37 +46,13 @@ def cross_validation_1_layer(X, y_pre, electrodes, K, lr=1e-5, wd=0, batch_size=
         X_train = (X_train - mu) / sigma
         X_test  = (X_test - mu) / sigma
 
-        X_test_copy = X_test.clone().detach()
-        y_test_copy = y_test.clone().detach()
+        model = Ensemble(nb_models, nb_classes, signal_length=X.shape[3], output_file=output_file, run_name=run_name, transfer_to_device=True, k=i+1)
 
-        # Grouping the desired channels in 2 by 2 pairs
-        # X_train, y_train = channel_trick(X_train, y_train, channel_list, electrodes)
-        # X_test, y_test = channel_trick(X_test, y_test, channel_list, electrodes)
-
-        model = CNN(nb_classes, X.shape[3])
-        criterion = torch.nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
-
-        train_acc[i, :], test_acc[i, :], losses[i, :], train_conf[
-            i, :, :], test_conf[i, :, :] = train_test_model(
-                model,
-                criterion,
-                optimizer,
-                X_train,
-                y_train,
-                X_test,
-                y_test,
-                X_test_copy,
-                y_test_copy,
-                batch_size,
-                num_epochs,
-                transfer_to_device=True,
-                output_file=output_file,
-                k=i+1, minibatch=minibatch)
+        train_acc[i, :], test_acc[i, :], train_conf[i, :, :], test_conf[i, :, :] = model.train_test_on_the_fly(X_train, y_train, X_test, y_test, num_epochs, lr=lr, wd=wd, batch_size=batch_size, verbose=True)
+        model.save_weights()
 
     return train_acc, test_acc, losses, train_conf, test_conf
 
-# TODO: Test on individual pairs of channels, not only on the entire test set
 
 def train_test_model(model,
                      criterion,
@@ -91,6 +67,7 @@ def train_test_model(model,
                      num_epochs=10,
                      transfer_to_device=True,
                      output_file=None,
+                     run_name="",
                      k=None, minibatch=True):
 
     if transfer_to_device:
@@ -220,6 +197,6 @@ def train_test_model(model,
     test_conf = confusion_matrix(test_true, test_preds)
 
     if k:
-        torch.save({f'fold{k}_epochs{num_epochs}_model_state_dict': model.state_dict()}, './models/' + f'fold{k}_epochs{num_epochs}_model_weights.tar')
+        torch.save({f'fold{k}_epochs{num_epochs}_model_state_dict': model.state_dict()}, f'./models/fold{k}/' + f'fold{k}_model_weights_{run_name}.tar')
 
     return train_acc, test_acc, losses, train_conf, test_conf

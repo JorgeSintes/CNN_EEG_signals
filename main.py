@@ -12,16 +12,16 @@ def main():
     K = 5
     lr = 1e-5
     wd = 0
-    minibatch = True
     batch_size = 16
-    num_epochs = 200
+    num_epochs = 100
+    nb_models = 10
     nb_subs = -1
-    classes = ["L", "R", "0"]           # selected classes - possible classes: "L", "R", "LR", "F", "0"
+    classes = ["L", "R", "0"]   # selected classes - possible classes: "L", "R", "LR", "F", "0"
 
-    if minibatch:
-        run_name = f'_new_net_lr_{lr}_bs_{batch_size}_subs_{nb_subs}_epochs_{num_epochs}'
+    if batch_size:
+        run_name = f'_new_net_lr_{lr}_bs_{batch_size}_classes_{len(classes)}'
     else:
-        run_name = f'_new_net_lr_{lr}_nobs_subs_{nb_subs}_epochs_{num_epochs}'
+        run_name = f'_new_net_lr_{lr}_nobs_classes_{len(classes)}'
 
     file = open("./results/log"+run_name+".txt", "w")
 
@@ -33,15 +33,12 @@ def main():
     y_pre = y_pre[:, mask]
     X = X[:, mask, :, :]
 
-    electrodes = np.load("./data/filtered_data/electrodes.npy")
-
     X = torch.from_numpy(X).float()
 
-    train_acc, test_acc, losses, train_conf, test_conf = cross_validation_1_layer(X, y_pre, electrodes, K, lr, wd, batch_size, num_epochs, nb_classes=len(classes), minibatch=minibatch, output_file=file)
+    train_acc, test_acc, train_conf, test_conf = cross_validation_1_layer(X, y_pre, K, nb_models, lr, wd, batch_size, num_epochs, nb_classes=len(classes), output_file=file, run_name=run_name)
 
     np.save("./results/train_accuracies" + run_name, train_acc)
     np.save("./results/test_accuracies" + run_name, test_acc)
-    np.save("./results/losses" + run_name, losses)
     np.save("./results/train_confusion" + run_name, train_conf)
     np.save("./results/test_confusion" + run_name, test_conf)
 
