@@ -2,7 +2,7 @@ from load_data import load_data
 import os
 import numpy as np
 import torch
-from helper_functions import cross_validation_1_layer
+from helper_functions import cross_validation_1_layer, plot_ensemble
 
 
 def main():
@@ -15,14 +15,14 @@ def main():
     batch_size = 16
     num_epochs = 100
     nb_models = 10
-    nb_subs = -1
-    w_init_params = (0, 4)      # mean and std of initialized weights of models in Ensemble
+    nb_subs = 10
+    w_init_params = (0, 2)      # mean and std of initialized weights of models in Ensemble
     classes = ["L", "R", "0"]   # selected classes - possible classes: "L", "R", "LR", "F", "0"
 
     if batch_size:
-        run_name = f'_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params}'
+        run_name = f'_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}'
     else:
-        run_name = f'_lr_{lr}_nobs_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params}'
+        run_name = f'_lr_{lr}_nobs_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}'
 
     file = open("./results/log"+run_name+".txt", "w")
 
@@ -36,12 +36,16 @@ def main():
 
     X = torch.from_numpy(X).float()
 
-    train_acc, test_acc, train_conf, test_conf = cross_validation_1_layer(X, y_pre, K, nb_models, lr, wd, batch_size, num_epochs, nb_classes=len(classes), output_file=file, run_name=run_name, w_init_params=w_init_params)
+    # train_losses, test_losses, train_acc, test_acc, train_conf, test_conf = cross_validation_1_layer(X, y_pre, K, nb_models, lr, wd, batch_size, num_epochs, nb_classes=len(classes), output_file=file, run_name=run_name, w_init_params=w_init_params)
 
-    np.save("./results/train_accuracies" + run_name, train_acc)
-    np.save("./results/test_accuracies" + run_name, test_acc)
-    np.save("./results/train_confusion" + run_name, train_conf)
-    np.save("./results/test_confusion" + run_name, test_conf)
+    # np.save("./results/train_losses" + run_name, train_losses)
+    # np.save("./results/test_losses" + run_name, test_losses)
+    # np.save("./results/train_accuracies" + run_name, train_acc)
+    # np.save("./results/test_accuracies" + run_name, test_acc)
+    # np.save("./results/train_confusion" + run_name, train_conf)
+    # np.save("./results/test_confusion" + run_name, test_conf)
+
+    plot_ensemble(X, y_pre, K, batch_size, nb_models, len(classes), 2, f"_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}")
 
     file.close()
 
