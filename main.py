@@ -16,6 +16,7 @@ def main():
     num_epochs = 100
     nb_models = 10
     nb_subs = -1
+    w_init_params = (0, 4)      # mean and std of initialized weights of models in Ensemble
     classes = ["L", "R", "0"]   # selected classes - possible classes: "L", "R", "LR", "F", "0"
 
     if batch_size:
@@ -35,7 +36,7 @@ def main():
 
     X = torch.from_numpy(X).float()
 
-    train_acc, test_acc, train_conf, test_conf = cross_validation_1_layer(X, y_pre, K, nb_models, lr, wd, batch_size, num_epochs, nb_classes=len(classes), output_file=file, run_name=run_name)
+    train_acc, test_acc, train_conf, test_conf = cross_validation_1_layer(X, y_pre, K, nb_models, lr, wd, batch_size, num_epochs, nb_classes=len(classes), output_file=file, run_name=run_name, w_init_params=w_init_params)
 
     np.save("./results/train_accuracies" + run_name, train_acc)
     np.save("./results/test_accuracies" + run_name, test_acc)

@@ -74,7 +74,7 @@ class CNN(torch.nn.Module):
 
 
 class Ensemble():
-    def __init__(self, nb_models, nb_classes=4, signal_length=6*160, output_file=None, run_name="", transfer_to_device=False, k=None):
+    def __init__(self, nb_models, nb_classes=4, signal_length=6*160, output_file=None, run_name="", transfer_to_device=False, k=None, w_init_params=(0,1)):
         self.nb_models = nb_models
         self.nb_classes = nb_classes
         self.output_file = output_file
@@ -90,6 +90,11 @@ class Ensemble():
             output_file.write(f"Using {self.device}\n")
 
         self.models = [CNN(nb_classes, signal_length) for _ in range(nb_models)]
+        
+        if nb_models > 1:
+            for model in self.models:
+                for p in model.parameters():
+                    torch.nn.init.normal_(p, mean=w_init_params[0], std=w_init_params[1])
 
         for model in self.models:
             model.to(self.device)
@@ -199,6 +204,7 @@ class Ensemble():
                         self.output_file.flush()
 
         return train_accuracies, test_accuracies, train_conf, test_conf
+        
 
     def save_weights(self):
         state_dict = {}

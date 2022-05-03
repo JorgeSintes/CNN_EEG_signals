@@ -12,7 +12,7 @@ def one_hot(array):
     return onehot, unique
 
 
-def cross_validation_1_layer(X, y_pre, K, nb_models, lr=1e-5, wd=0, batch_size=64, num_epochs=2000, nb_classes=4, output_file=None, run_name=""):
+def cross_validation_1_layer(X, y_pre, K, nb_models, lr=1e-5, wd=0, batch_size=64, num_epochs=2000, nb_classes=4, output_file=None, run_name="", w_init_params=(0,1)):
     CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
 
     train_acc = np.zeros((K, num_epochs))
@@ -46,7 +46,7 @@ def cross_validation_1_layer(X, y_pre, K, nb_models, lr=1e-5, wd=0, batch_size=6
         X_train = (X_train - mu) / sigma
         X_test  = (X_test - mu) / sigma
 
-        model = Ensemble(nb_models, nb_classes, signal_length=X.shape[3], output_file=output_file, run_name=run_name, transfer_to_device=True, k=i+1)
+        model = Ensemble(nb_models, nb_classes, signal_length=X.shape[3], output_file=output_file, run_name=run_name, transfer_to_device=True, k=i+1, w_init_params=w_init_params)
 
         train_acc[i, :], test_acc[i, :], train_conf[i, :, :], test_conf[i, :, :] = model.train_test_on_the_fly(X_train, y_train, X_test, y_test, num_epochs, lr=lr, wd=wd, batch_size=batch_size, verbose=True)
         model.save_weights()
