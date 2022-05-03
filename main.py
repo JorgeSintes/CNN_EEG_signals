@@ -2,7 +2,7 @@ from load_data import load_data
 import os
 import numpy as np
 import torch
-from helper_functions import one_hot, train_test_model, cross_validation_1_layer
+from helper_functions import cross_validation_1_layer
 
 
 def main():
@@ -19,9 +19,9 @@ def main():
     classes = ["L", "R", "0"]   # selected classes - possible classes: "L", "R", "LR", "F", "0"
 
     if batch_size:
-        run_name = f'_new_net_lr_{lr}_bs_{batch_size}_classes_{len(classes)}'
+        run_name = f'_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}'
     else:
-        run_name = f'_new_net_lr_{lr}_nobs_classes_{len(classes)}'
+        run_name = f'_lr_{lr}_nobs_classes_{len(classes)}_models_{nb_models}'
 
     file = open("./results/log"+run_name+".txt", "w")
 
