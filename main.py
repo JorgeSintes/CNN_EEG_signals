@@ -20,9 +20,9 @@ def main():
     classes = ["L", "R", "0"]   # selected classes - possible classes: "L", "R", "LR", "F", "0"
 
     if batch_size:
-        run_name = f'_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}'
+        run_name = f'_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params}'
     else:
-        run_name = f'_lr_{lr}_nobs_classes_{len(classes)}_models_{nb_models}'
+        run_name = f'_lr_{lr}_nobs_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params}'
 
     file = open("./results/log"+run_name+".txt", "w")
 
