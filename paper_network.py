@@ -191,11 +191,11 @@ class Ensemble():
                     print(f'Test conf. matrix, fold {self.k} epoch {epoch + 1}: \n{test_conf}')
 
                 if self.output_file:
-                    self.output_file.write(f"Fold {self.k} Epoch {epoch + 1}: Train Accur {train_acc:.4f}, Test Accur {test_acc:.4f}")
+                    self.output_file.write(f"Fold {self.k} Epoch {epoch + 1}: Train Accur {train_acc:.4f}, Test Accur {test_acc:.4f}\n")
                     self.output_file.flush()
                     if (epoch + 1) % 5 == 0:
-                        self.output_file.write(f'Train conf. matrix, fold {self.k}, epoch {epoch + 1}: \n{train_conf}')
-                        self.output_file.write(f'Test conf. matrix, fold {self.k} epoch {epoch + 1}: \n{test_conf}')
+                        self.output_file.write(f'Train conf. matrix, fold {self.k}, epoch {epoch + 1}: \n{train_conf}\n')
+                        self.output_file.write(f'Test conf. matrix, fold {self.k} epoch {epoch + 1}: \n{test_conf}\n')
                         self.output_file.flush()
 
         return train_accuracies, test_accuracies, train_conf, test_conf
