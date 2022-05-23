@@ -1,5 +1,7 @@
 from load_data import load_data
 import os
+import json
+import time
 import numpy as np
 import torch
 from helper_functions import cross_validation_1_layer, plot_ensemble
@@ -19,12 +21,34 @@ def main():
     w_init_params = (0, 2)      # mean and std of initialized weights of models in Ensemble
     classes = ["L", "R", "0"]   # selected classes - possible classes: "L", "R", "LR", "F", "0"
 
+    info_dict = {
+                'K': K,
+                'lr': lr,
+                'wd': wd,
+                'batch_size': batch_size,
+                'num_epochs': num_epochs,
+                'nb_models': nb_models,
+                'nb_subs': nb_subs,
+                'w_init_params': w_init_params,
+                'classes': classes
+            }
+
     if batch_size:
         run_name = f'_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}'
     else:
         run_name = f'_lr_{lr}_nobs_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}'
 
-    file = open("./results/log"+run_name+".txt", "w")
+    date = time.localtime()
+    date_str = f"{date.tm_year}-{date.tm_mon}-{date.tm_mday}_{date.tm_hour}-{date.tm_min}-{date.tm_sec}"
+    folder_name = date_str + run_name
+    path = "./results/" + folder_name + "/"
+    os.mkdir(path)
+
+    info_file = open(path + "info.json", "w")
+    json.dump(info_dict, info_file)
+    info_file.close()
+
+    file = open(path + "log.txt", "w")
 
     X = np.load("./data/filtered_data/signals_ordered_6s_all_tags.npy")[:nb_subs, :, :, :]
     y_pre = np.load("./data/filtered_data/targets_ordered_6s_all_tags.npy")[:nb_subs, :]
@@ -36,16 +60,16 @@ def main():
 
     X = torch.from_numpy(X).float()
 
-    # train_losses, test_losses, train_acc, test_acc, train_conf, test_conf = cross_validation_1_layer(X, y_pre, K, nb_models, lr, wd, batch_size, num_epochs, nb_classes=len(classes), output_file=file, run_name=run_name, w_init_params=w_init_params)
+    train_losses, test_losses, train_acc, test_acc, train_conf, test_conf = cross_validation_1_layer(X, y_pre, K, nb_models, lr, wd, batch_size, num_epochs, nb_classes=len(classes), output_file=file, run_name=run_name, w_init_params=w_init_params)
 
-    # np.save("./results/train_losses" + run_name, train_losses)
-    # np.save("./results/test_losses" + run_name, test_losses)
-    # np.save("./results/train_accuracies" + run_name, train_acc)
-    # np.save("./results/test_accuracies" + run_name, test_acc)
-    # np.save("./results/train_confusion" + run_name, train_conf)
-    # np.save("./results/test_confusion" + run_name, test_conf)
+    np.save(path + "train_losses", train_losses)
+    np.save(path + "test_losses", test_losses)
+    np.save(path + "train_accuracies", train_acc)
+    np.save(path + "test_accuracies", test_acc)
+    np.save(path + "train_confusion", train_conf)
+    np.save(path + "test_confusion", test_conf)
 
-    plot_ensemble(X, y_pre, K, batch_size, nb_models, len(classes), 2, f"_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}")
+    # plot_ensemble(X, y_pre, K, batch_size, nb_models, len(classes), 2, f"_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}")
 
     file.close()
 
