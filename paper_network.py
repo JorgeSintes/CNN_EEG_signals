@@ -251,7 +251,7 @@ class Ensemble():
         # swa_avg_m2 = [[torch.square(x.data) for x in model.parameters()] for model in self.models]
 
         for epoch in range(num_epochs):
-            print(f"Doing SWA! Epoch {epoch}/{num_epochs}")
+            print(f"Doing SWA! Epoch {epoch+1}/{num_epochs}")
             for model, optimizer in zip(self.models, sgds):
                 model.train()
 
@@ -280,7 +280,7 @@ class Ensemble():
 
 
         for m, model in enumerate(self.models):
-            state_dict = OrderedDict(list(zip(self.model.state_dict().keys(), swa_avg_m1[m])))
+            state_dict = OrderedDict(list(zip(model.state_dict().keys(), swa_avg_m1[m])))
             model.load_state_dict(state_dict)
 
 
