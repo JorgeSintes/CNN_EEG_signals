@@ -251,6 +251,7 @@ class Ensemble():
         # swa_avg_m2 = [[torch.square(x.data) for x in model.parameters()] for model in self.models]
 
         for epoch in range(num_epochs):
+            print(f"Doing SWA! Epoch {epoch}/{num_epochs})
             for model, optimizer in zip(self.models, sgds):
                 model.train()
 
