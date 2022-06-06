@@ -89,13 +89,21 @@ def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name
     model = Ensemble(nb_models, nb_classes, k=fold, run_name=run_name, transfer_to_device=True)
     model.load_weights()
     accuracies = []
+    accuracies_swa = []
 
     for i in range(nb_models):
         loss, acc, _ = model.test(X_test, y_test, batch_size, models_used=i+1)
         accuracies.append(acc)
 
+    model.do_the_swa(X_train, y_train, 50, 1e-3, 5, batch_size=batch_size)
+
+    for i in range(nb_models):
+        loss, acc, _ = model.test(X_test, y_test, batch_size, models_used=i+1)
+        accuracies_swa.append(acc)
+
     fig, ax = plt.subplots(1,1, figsize=(20,10))
     ax.plot(list(range(1, nb_models + 1)), accuracies, 'b', label="Test accuracies")
+    ax.plot(list(range(1, nb_models + 1)), accuracies_swa, 'r', label="Test accuracies after SWA")
     ax.set(xlabel="No. of models", ylabel="Accuracy")
     fig.suptitle(f"Ensemble - Fold: {fold}, classes: {nb_classes}")
     fig.savefig(f"./figures/"+run_name[1:]+f"_{fold}_fold.pdf")

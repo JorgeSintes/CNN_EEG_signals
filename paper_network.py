@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from sklearn.metrics import confusion_matrix, accuracy_score
+from collections import OrderedDict
 
 
 class CNN(torch.nn.Module):
@@ -225,7 +226,7 @@ class Ensemble():
         for i, model in enumerate(self.models):
             state_dicts[i] = model.to("cpu").state_dict()
 
-        torch.save(state_dicts, f"./models/" + folder_name + "/ensemble_weights_fold_{self.k}"+self.run_name+".tar")
+        torch.save(state_dicts, f"./models/" + folder_name + f"/ensemble_weights_fold_{self.k}"+self.run_name+".tar")
 
 
     def load_weights(self):
@@ -233,4 +234,52 @@ class Ensemble():
 
         for i, model in enumerate(self.models):
             model.load_state_dict(state_dicts[i])
+
+
+    def do_the_swa(self, X_train, y_train, num_epochs, lr, K, c=1, batch_size=None):
+
+        sgds = [torch.optim.SGD(model.parameters(), lr=lr) for model in self.models]
+
+        X_train = X_train.to(self.device)
+        y_train = y_train.to(self.device)
+
+        if batch_size:
+            X_train_batches = torch.split(X_train, batch_size, dim=0)
+            y_train_batches = torch.split(y_train, batch_size, dim=0)
+
+        swa_avg_m1 = [[x.data for x in model.parameters()] for model in self.models]
+        # swa_avg_m2 = [[torch.square(x.data) for x in model.parameters()] for model in self.models]
+
+        for epoch in range(num_epochs):
+            for model, optimizer in zip(self.models, sgds):
+                model.train()
+
+                if batch_size:
+                    for x, y in zip(X_train_batches, y_train_batches):
+                        out = model(x)
+                        loss = self.criterion(out, y)
+                        optimizer.zero_grad()
+                        loss.backward()
+                        optimizer.step()
+
+                else:
+                    out = model(X_train)
+                    loss = self.criterion(out, y_train)
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()
+
+            if (epoch+1) % c == 0:
+                n = (epoch+1) // c
+
+                for m, model in enumerate(self.models):
+                    for l, layer in enumerate(model.parameters()):
+                        swa_avg_m1[m][l] = (n * swa_avg_m1[m][l] + layer) / (n + 1)
+                        # swa_avg_m2[m][l] = (n * swa_avg_m2[m][l] + torch.square(layer)) / (n + 1)
+
+
+        for m, model in enumerate(self.models):
+            state_dict = OrderedDict(list(zip(self.model.state_dict().keys(), swa_avg_m1[m])))
+            model.load_state_dict(state_dict)
+
 
