@@ -220,12 +220,12 @@ class Ensemble():
         return train_losses, test_losses, train_accuracies, test_accuracies, train_conf, test_conf
 
 
-    def save_weights(self):
+    def save_weights(self, folder_name = ""):
         state_dicts = {}
         for i, model in enumerate(self.models):
             state_dicts[i] = model.to("cpu").state_dict()
 
-        torch.save(state_dicts, f"./models/ensemble_weights_fold_{self.k}"+self.run_name+".tar")
+        torch.save(state_dicts, f"./models/" + folder_name + "/ensemble_weights_fold_{self.k}"+self.run_name+".tar")
 
 
     def load_weights(self):
