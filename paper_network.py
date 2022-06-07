@@ -94,7 +94,7 @@ class Ensemble():
         self.criterion = None
         self.optimizers = None
 
-        if nb_models > 1:
+        if w_init_params[1]:
             for model in self.models:
                 for p in model.parameters():
                     torch.nn.init.normal_(p, mean=w_init_params[0], std=w_init_params[1])

@@ -17,7 +17,7 @@ def main(plot=False):
     num_epochs = 100
     nb_models = 10
     nb_subs = 100
-    w_init_params = (0, 1.2)      # mean and std of initialized weights of models in Ensemble
+    w_init_params = (0, False)      # mean and std of initialized weights of models in Ensemble
     classes = ["L", "R", "0"]   # selected classes - possible classes: "L", "R", "LR", "F", "0"
 
     info_dict = {
