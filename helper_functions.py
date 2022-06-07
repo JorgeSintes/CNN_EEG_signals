@@ -89,11 +89,16 @@ def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name
     model = Ensemble(nb_models, nb_classes, k=fold, run_name=run_name, transfer_to_device=True)
     model.load_weights()
     accuracies = []
+    single_accuracies = []
     accuracies_swa = []
+    single_accuracies_swa = []
 
     for i in range(nb_models):
         loss, acc, _ = model.test(X_test, y_test, batch_size, models_used=i+1)
         accuracies.append(acc)
+
+        loss, acc, _ = model.test(X_test, y_test, batch_size, models_used=[i])
+        single_accuracies.append(acc)
 
     model.do_the_swa(X_train, y_train, 50, 1e-3, 5, batch_size=batch_size)
 
@@ -101,10 +106,22 @@ def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name
         loss, acc, _ = model.test(X_test, y_test, batch_size, models_used=i+1)
         accuracies_swa.append(acc)
 
+        loss, acc, _ = model.test(X_test, y_test, batch_size, models_used=[i])
+        single_accuracies_swa.append(acc)
+
     fig, ax = plt.subplots(1,1, figsize=(20,10))
     ax.plot(list(range(1, nb_models + 1)), accuracies, 'b', label="Test accuracies")
+
+    for single_acc in single_accuracies:
+        ax.plot(list(range(1, nb_models + 1)), [single_acc]*nb_models, 'g', alpha=0.8)
+
     ax.plot(list(range(1, nb_models + 1)), accuracies_swa, 'r', label="Test accuracies after SWA")
+
+    for single_acc in single_accuracies_swa:
+        ax.plot(list(range(1, nb_models + 1)), [single_acc]*nb_models, 'orange', alpha=0.8)
+
     ax.set(xlabel="No. of models", ylabel="Accuracy")
+    ax.legend()
     fig.suptitle(f"Ensemble - Fold: {fold}, classes: {nb_classes}")
     fig.savefig(f"./figures/"+run_name[1:]+f"_{fold}_fold.pdf")
     # plt.show()

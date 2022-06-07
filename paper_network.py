@@ -142,7 +142,9 @@ class Ensemble():
 
     def test(self, X_test, y_test, batch_size=None, models_used=None):
         if not models_used:
-            models_used = self.nb_models
+            models_used = range(self.nb_models)
+        elif type(models_used) == int:
+            models_used = range(models_used)
 
         if not self.criterion:
             self.criterion = torch.nn.CrossEntropyLoss()
@@ -150,12 +152,13 @@ class Ensemble():
 
         with torch.no_grad():
 
-            outputs = torch.zeros((models_used, X_test.shape[0], self.nb_classes)).to(self.device)
-            test_losses = torch.zeros((models_used))
+            outputs = torch.zeros((len(models_used), X_test.shape[0], self.nb_classes)).to(self.device)
+            test_losses = torch.zeros((len(models_used)))
             X_test = X_test.to(self.device)
             y_test = y_test.to(self.device)
 
-            for i, model in enumerate(self.models[:models_used]):
+            for i, model in enumerate(models_used):
+                model = self.models[model]
                 model.eval()
 
                 if batch_size:
