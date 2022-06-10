@@ -58,7 +58,7 @@ def cross_validation_1_layer(X, y_pre, K, nb_models, lr=1e-5, wd=0, batch_size=6
     return train_losses, test_losses, train_acc, test_acc, train_conf, test_conf
 
 
-def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name):
+def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name, swa_params=None, alpha=0.5):
 
     CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=12)
     split_gen = CV.split(np.zeros((X.shape[1], 1)), y_pre[0,:])
@@ -100,25 +100,27 @@ def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name
         loss, acc, _ = model.test(X_test, y_test, batch_size, models_used=[i])
         single_accuracies.append(acc)
 
-    model.do_the_swa(X_train, y_train, 50, 1e-3, 5, batch_size=batch_size)
+    if swa_params:
+        model.do_the_swa(X_train, y_train, swa_params["num_epochs"], swa_params["lr"], swa_params["K"], c=swa_params["c"], batch_size=batch_size)
 
-    for i in range(nb_models):
-        loss, acc, _ = model.test(X_test, y_test, batch_size, models_used=i+1)
-        accuracies_swa.append(acc)
+        for i in range(nb_models):
+            loss, acc, _ = model.test(X_test, y_test, batch_size, models_used=i+1)
+            accuracies_swa.append(acc)
 
-        loss, acc, _ = model.test(X_test, y_test, batch_size, models_used=[i])
-        single_accuracies_swa.append(acc)
+            loss, acc, _ = model.test(X_test, y_test, batch_size, models_used=[i])
+            single_accuracies_swa.append(acc)
 
     fig, ax = plt.subplots(1,1, figsize=(20,10))
     ax.plot(list(range(1, nb_models + 1)), accuracies, 'b', label="Test accuracies")
 
     for single_acc in single_accuracies:
-        ax.plot(list(range(1, nb_models + 1)), [single_acc]*nb_models, 'g', alpha=0.8)
+        ax.plot(list(range(1, nb_models + 1)), [single_acc]*nb_models, 'g', alpha=alpha)
 
-    ax.plot(list(range(1, nb_models + 1)), accuracies_swa, 'r', label="Test accuracies after SWA")
+    if swa_params:
+        ax.plot(list(range(1, nb_models + 1)), accuracies_swa, 'r', label="Test accuracies after SWA")
 
-    for single_acc in single_accuracies_swa:
-        ax.plot(list(range(1, nb_models + 1)), [single_acc]*nb_models, 'orange', alpha=0.8)
+        for single_acc in single_accuracies_swa:
+            ax.plot(list(range(1, nb_models + 1)), [single_acc]*nb_models, 'orange', alpha=alpha)
 
     ax.set(xlabel="No. of models", ylabel="Accuracy")
     ax.legend()

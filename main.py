@@ -32,6 +32,13 @@ def main(plot=False):
                 'classes': classes
             }
 
+    swa_params = {
+            "num_epochs": 50,
+            "lr": 1e-5,
+            "K": 20,
+            "c": 1,
+            }
+
     if batch_size:
         run_name = f'_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}'
     else:
@@ -77,7 +84,7 @@ def main(plot=False):
 
     if plot:
         for k in range(1,K+1):
-            plot_ensemble(X, y_pre, K, batch_size, nb_models, len(classes), k, f"_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}")
+            plot_ensemble(X, y_pre, K, batch_size, nb_models, len(classes), k, f"_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}", swa_params=swa_params)
 
 
 if __name__ == "__main__":

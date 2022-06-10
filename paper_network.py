@@ -250,8 +250,10 @@ class Ensemble():
             X_train_batches = torch.split(X_train, batch_size, dim=0)
             y_train_batches = torch.split(y_train, batch_size, dim=0)
 
-        swa_avg_m1 = [[x.data for x in model.parameters()] for model in self.models]
-        # swa_avg_m2 = [[torch.square(x.data) for x in model.parameters()] for model in self.models]
+        self.swa_avg_m1 = [torch.nn.utils.parameters_to_vector(model.parameters()) for model in self.models]
+        swa_avg_m2 = [torch.square(el) for el in self.swa_avg_m1]
+        self.Ds = [torch.zeros((self.swa_avg_m1[0].shape[0], K)) for _ in range(len(self.swa_avg_m1))]
+        D_it = 0
 
         for epoch in range(num_epochs):
             print(f"Doing SWA! Epoch {epoch+1}/{num_epochs}")
@@ -277,13 +279,30 @@ class Ensemble():
                 n = (epoch+1) // c
 
                 for m, model in enumerate(self.models):
-                    for l, layer in enumerate(model.parameters()):
-                        swa_avg_m1[m][l] = (n * swa_avg_m1[m][l] + layer) / (n + 1)
-                        # swa_avg_m2[m][l] = (n * swa_avg_m2[m][l] + torch.square(layer)) / (n + 1)
+                    layer = torch.nn.utils.parameters_to_vector(model.parameters())
+                    self.swa_avg_m1[m] = (n * self.swa_avg_m1[m] + layer) / (n + 1)
+                    swa_avg_m2[m] = (n * swa_avg_m2[m] + torch.square(layer)) / (n + 1)
+
+                    if epoch >= num_epochs - K*c:
+                        self.Ds[m][:, D_it] = layer - self.swa_avg_m1[m]
+                        D_it += 1
+
+        self.swa_diag = [sq_avg - torch.square(mean) for (mean, sq_avg) in zip(swa_avg_m1, swa_avg_m2)]
 
 
-        for m, model in enumerate(self.models):
-            state_dict = OrderedDict(list(zip(model.state_dict().keys(), swa_avg_m1[m])))
-            model.load_state_dict(state_dict)
+    def save_swa_results(self, folder_name=""):
+        swa_dict = {"swa_avg_m1": self.swa_avg_m1,
+                    "swa_diag": self.swa_diag,
+                    "swa_Ds": self.Ds}
+
+        torch.save(swa_dict, f"./models/" + folder_name + f"/swa_results_fold_{self.k}"+self.run_name+".tar")
+
+
+    def load_swa_results(self):
+        swa_dict = torch.load(f"./models/swa_results_fold_{self.k}"+self.run_name+".tar")
+
+        self.swa_avg_m1 = swa_dict["swa_avg_m1"]
+        self.swa_diag = swa_dict["swa_diag"]
+        self.swa_Ds = swa_dict["swa_Ds"]
 
 
