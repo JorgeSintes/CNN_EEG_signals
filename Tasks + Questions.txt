@@ -21,3 +21,11 @@ Hypotheses for overfitting:
 
 Implement Deep ensemble followed by SWAG   + Look at accuraty and calibration once done
 Save for 50 models
+
+Separate in a different function the inference, and then build a conventional test and swag multi-swag test.
+
+compute LPD and expected calibration error (uncertainty toolbox might help). https://github.com/uncertainty-toolbox/uncertainty-toolbox 
+
+Merge all the fold plots to a single one with average value and error bars (standard error = standard dev. / sqrt(N folds))
+
+Confidence metric or entropy of the distribution in order to account for uncertainty.
