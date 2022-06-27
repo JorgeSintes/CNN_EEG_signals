@@ -193,19 +193,19 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
     fig, ax = plt.subplots(1,2, figsize=(20,10))
 
     # ax[0].plot(list(range(1, nb_models + 1)), avg_accs_ens, c='b', label='ensemble')
-    ax[0].errorbar(list(range(1, nb_models + 1)), avg_accs_ens, yerr=ste_accs_ens, label="ensemble")
+    ax[0].errorbar(list(range(1, nb_models + 1)), avg_accs_ens, yerr=ste_accs_ens, label="ensemble", alpha=alpha)
 
     # ax[0].plot(list(range(1, nb_models + 1)), avg_accs_swa, c='g', label='swag')
-    ax[0].errorbar(list(range(1, nb_models + 1)), avg_accs_swa, yerr=ste_accs_swa, label="swag")
+    ax[0].errorbar(list(range(1, nb_models + 1)), avg_accs_swa, yerr=ste_accs_swa, label="swag", alpha=alpha)
 
     ax[0].set(xlabel="No. of models", ylabel="Average accuracy", title='Average accuracy of models on test data across folds with errorbars')
     ax[0].legend()
 
     # ax[1].plot(list(range(1, nb_models + 1)), avg_log_pred_dens_ens, c='b', label='ensemble')
-    ax[1].errorbar(list(range(1, nb_models + 1)), avg_log_pred_dens_ens, yerr=ste_log_pred_dens_ens, label="ensemble")
+    ax[1].errorbar(list(range(1, nb_models + 1)), avg_log_pred_dens_ens, yerr=ste_log_pred_dens_ens, label="ensemble", alpha=alpha)
 
     # ax[1].plot(list(range(1, nb_models + 1)), avg_log_pred_dens_swa, c='g', label='swag')
-    ax[1].errorbar(list(range(1, nb_models + 1)), avg_log_pred_dens_swa, yerr=ste_log_pred_dens_swa, label="swag")
+    ax[1].errorbar(list(range(1, nb_models + 1)), avg_log_pred_dens_swa, yerr=ste_log_pred_dens_swa, label="swag", alpha=alpha)
 
     ax[1].set(xlabel="No. of models", ylabel="Average log PD", title='Average log pred dens of models on test data across folds with errorbars')
     ax[1].legend()

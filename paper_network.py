@@ -189,7 +189,7 @@ class Ensemble():
         preds = torch.max(outputs, 1)[1].to("cpu")
         true = torch.max(y_test, 1)[1].to("cpu")
 
-        log_pred_dens = torch.sum(log_outputs[y_test.bool()])
+        log_pred_dens = torch.sum(log_outputs[y_test.bool()]).to("cpu")
 
         test_preds = list(preds.data.numpy())
         test_true = list(true.data.numpy())
