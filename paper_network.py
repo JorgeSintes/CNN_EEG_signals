@@ -153,7 +153,7 @@ class Ensemble():
         with torch.no_grad():
 
             outputs = torch.zeros((len(models_used), X.shape[0], self.nb_classes)).to(self.device)
-            test_losses = torch.zeros((len(models_used)))
+            losses = torch.zeros((len(models_used)))
             X = X.to(self.device)
             y = y.to(self.device)
 
@@ -174,16 +174,16 @@ class Ensemble():
                     out = model(X)
                     outputs[i, :, :] = torch.nn.functional.softmax(out, dim=1)
 
-                test_losses[i] = self.criterion(outputs[i,:,:], y)
+                losses[i] = self.criterion(outputs[i,:,:], y)
 
             outputs = torch.mean(outputs, dim=0)
 
-        return outputs
+        return outputs, losses
 
 
     def test(self, X_test, y_test, batch_size=None, models_used=None):
 
-        outputs = self.inference(X_test, y_test, batch_size, models_used)
+        outputs, test_losses = self.inference(X_test, y_test, batch_size, models_used)
         log_outputs = torch.log(outputs)
 
         preds = torch.max(outputs, 1)[1].to("cpu")
