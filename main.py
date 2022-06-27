@@ -33,9 +33,9 @@ def main(plot=False):
             }
 
     swa_params = {
-            "num_epochs": 10,
+            "num_epochs": 50,
             "lr": 1e-5,
-            "K": 5,
+            "K": 20,
             "c": 1,
             }
 

@@ -170,11 +170,11 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
     
     plt.figure(figsize=(20,10))
     
-    plt.plot(list(range(1, nb_models + 1)), avg_accs_ens, c='b', label='ensemnle')
-    plt.errorbar(list(range(1, nb_models + 1)), avg_accs_ens, yerr=ste_accs_ens)
+    # plt.plot(list(range(1, nb_models + 1)), avg_accs_ens, c='b', label='ensemble')
+    plt.errorbar(list(range(1, nb_models + 1)), avg_accs_ens, yerr=ste_accs_ens, label="ensemble")
     
-    plt.plot(list(range(1, nb_models + 1)), avg_accs_swa, c='g', label='swa')
-    plt.errorbar(list(range(1, nb_models + 1)), avg_accs_swa, yerr=ste_accs_swa)
+    # plt.plot(list(range(1, nb_models + 1)), avg_accs_swa, c='g', label='swag')
+    plt.errorbar(list(range(1, nb_models + 1)), avg_accs_swa, yerr=ste_accs_swa, label="swag")
     
     plt.xlabel="No. of models"
     plt.ylabel="Average kaccuracy"
