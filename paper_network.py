@@ -183,18 +183,18 @@ class Ensemble():
 
     def test(self, X_test, y_test, batch_size=None, models_used=None):
 
-            outputs = self.inference(X_test, y_test, batch_size, models_used)
-            log_outputs = torch.log(outputs)
+        outputs = self.inference(X_test, y_test, batch_size, models_used)
+        log_outputs = torch.log(outputs)
 
-            preds = torch.max(outputs, 1)[1].to("cpu")
-            true = torch.max(y_test, 1)[1].to("cpu")
-            test_preds = list(preds.data.numpy())
-            test_true = list(true.data.numpy())
-            test_losses.to("cpu")
+        preds = torch.max(outputs, 1)[1].to("cpu")
+        true = torch.max(y_test, 1)[1].to("cpu")
+        test_preds = list(preds.data.numpy())
+        test_true = list(true.data.numpy())
+        test_losses.to("cpu")
 
-            # Compute accuracies
-            test_acc = accuracy_score(test_true, test_preds)
-            test_conf = confusion_matrix(test_true, test_preds)
+        # Compute accuracies
+        test_acc = accuracy_score(test_true, test_preds)
+        test_conf = confusion_matrix(test_true, test_preds)
 
         return test_losses, test_acc, test_conf
 
