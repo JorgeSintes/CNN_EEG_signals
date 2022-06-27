@@ -168,7 +168,7 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
     ste_accs_ens = np.std(accuracies_ens_all_folds, axis=0)/np.sqrt(5)
     ste_accs_swa = np.std(accuracies_swa_all_folds, axis=0)/np.sqrt(5)
     
-    plt.figure()
+    plt.figure(figsize=(20,10))
     
     plt.plot(list(range(1, nb_models + 1)), avg_accs_ens, c='b', label='ensemnle')
     plt.errorbar(list(range(1, nb_models + 1)), avg_accs_ens, yerr=ste_accs_ens)
@@ -177,7 +177,7 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
     plt.errorbar(list(range(1, nb_models + 1)), avg_accs_swa, yerr=ste_accs_swa)
     
     plt.xlabel="No. of models"
-    plt.ylabel="Average accuracy"
+    plt.ylabel="Average kaccuracy"
     plt.legend()
     plt.title('Average accuracy of models on test data across folds with errorbars')
     plt.savefig(f"./figures/"+run_name[1:]+f"_avg_acc_fols_w-errorbars.pdf", bbox_inches='tight', format='pdf')
