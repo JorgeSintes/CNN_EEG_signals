@@ -188,6 +188,9 @@ class Ensemble():
 
         preds = torch.max(outputs, 1)[1].to("cpu")
         true = torch.max(y_test, 1)[1].to("cpu")
+
+        log_pred_dens = torch.sum(log_outputs[y_test.bool()])
+
         test_preds = list(preds.data.numpy())
         test_true = list(true.data.numpy())
         test_losses.to("cpu")
@@ -196,7 +199,7 @@ class Ensemble():
         test_acc = accuracy_score(test_true, test_preds)
         test_conf = confusion_matrix(test_true, test_preds)
 
-        return test_losses, test_acc, test_conf
+        return {"losses": test_losses, "acc": test_acc, "conf": test_conf, "log_pred_dens": log_pred_dens}
 
     def train_test_on_the_fly(self, X_train, y_train, X_test, y_test, num_epochs, lr=1e-5, wd=0, batch_size=None, verbose=True):
         self.criterion = torch.nn.CrossEntropyLoss()
@@ -209,11 +212,18 @@ class Ensemble():
         test_losses  = torch.zeros((self.nb_models, num_epochs))
 
         for epoch in range(num_epochs):
-            train_losses[:, epoch], train_acc, train_conf = self.train(X_train, y_train, 1, lr=lr, batch_size=batch_size)
-            test_losses[:, epoch], test_acc, test_conf = self.test(X_test, y_test, batch_size=batch_size)
+            train_metrics = self.train(X_train, y_train, 1, lr=lr, batch_size=batch_size)
+            test_metrics = self.test(X_test, y_test, batch_size=batch_size)
 
-            train_accuracies.append(train_acc)
-            test_accuracies.append(test_acc)
+            # Unpack results
+            train_losses[:, epoch] = train_metrics["losses"]
+            test_losses[:, epoch] = test_metrics["losses"]
+
+            train_accuracies.append(train_metrics["acc"])
+            test_accuracies.append(test_metrics[1])
+
+            train_conf = train_metrics["conf"]
+            test_conf = test_metrics["conf"]
 
             if verbose:
                 print(f"Fold {self.k} Epoch {epoch + 1}: Train Accur {train_acc:.4f}, Test Accur {test_acc:.4f}")
@@ -259,7 +269,7 @@ class Ensemble():
             y_train_batches = torch.split(y_train, batch_size, dim=0)
 
         self.swa_avg_m1 = [torch.nn.utils.parameters_to_vector(model.parameters()) for model in self.models]
-        swa_avg_m2 = [torch.square(el) for el in self.swa_avg_m1]
+        self.swa_avg_m2 = [torch.square(el) for el in self.swa_avg_m1]
         self.Ds = [torch.zeros((self.swa_avg_m1[0].shape[0], K)) for _ in range(len(self.swa_avg_m1))]
         D_it = 0
 
@@ -289,7 +299,7 @@ class Ensemble():
                 for m, model in enumerate(self.models):
                     layer = torch.nn.utils.parameters_to_vector(model.parameters())
                     self.swa_avg_m1[m] = (n * self.swa_avg_m1[m] + layer) / (n + 1)
-                    swa_avg_m2[m] = (n * swa_avg_m2[m] + torch.square(layer)) / (n + 1)
+                    self.swa_avg_m2[m] = (n * self.swa_avg_m2[m] + torch.square(layer)) / (n + 1)
 
                     if epoch >= num_epochs - K*c:
                         self.Ds[m][:, D_it] = layer - self.swa_avg_m1[m]
@@ -297,7 +307,7 @@ class Ensemble():
                 if epoch >= num_epochs - K*c:
                     D_it += 1
 
-        self.swa_diag = [sq_avg - torch.square(mean) for (mean, sq_avg) in zip(self.swa_avg_m1, swa_avg_m2)]
+        self.swa_diag = [sq_avg - torch.square(mean) for (mean, sq_avg) in zip(self.swa_avg_m1, self.swa_avg_m2)]
 
 
     def save_swa_results(self, folder_name=""):
@@ -314,5 +324,4 @@ class Ensemble():
         self.swa_avg_m1 = swa_dict["swa_avg_m1"]
         self.swa_diag = swa_dict["swa_diag"]
         self.swa_Ds = swa_dict["swa_Ds"]
-
 
