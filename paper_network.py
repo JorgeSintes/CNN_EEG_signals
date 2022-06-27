@@ -140,7 +140,7 @@ class Ensemble():
         return self.test(X_train, y_train, batch_size=batch_size)
 
 
-    def test(self, X_test, y_test, batch_size=None, models_used=None):
+    def inference(self, X, y, batch_size=None, models_used=None):
         if not models_used:
             models_used = range(self.nb_models)
         elif type(models_used) == int:
@@ -152,17 +152,17 @@ class Ensemble():
 
         with torch.no_grad():
 
-            outputs = torch.zeros((len(models_used), X_test.shape[0], self.nb_classes)).to(self.device)
+            outputs = torch.zeros((len(models_used), X.shape[0], self.nb_classes)).to(self.device)
             test_losses = torch.zeros((len(models_used)))
-            X_test = X_test.to(self.device)
-            y_test = y_test.to(self.device)
+            X = X.to(self.device)
+            y = y.to(self.device)
 
             for i, model in enumerate(models_used):
                 model = self.models[model]
                 model.eval()
 
                 if batch_size:
-                    X_test_batches = torch.split(X_test, batch_size, dim=0)
+                    X_test_batches = torch.split(X, batch_size, dim=0)
 
                     idx = 0
                     for x in X_test_batches:
@@ -171,12 +171,21 @@ class Ensemble():
                         idx += x.shape[0]
 
                 else:
-                    out = model(X_test)
+                    out = model(X)
                     outputs[i, :, :] = torch.nn.functional.softmax(out, dim=1)
 
-                test_losses[i] = self.criterion(outputs[i,:,:], y_test)
+                test_losses[i] = self.criterion(outputs[i,:,:], y)
 
             outputs = torch.mean(outputs, dim=0)
+
+        return outputs
+
+
+    def test(self, X_test, y_test, batch_size=None, models_used=None):
+
+            outputs = self.inference(X_test, y_test, batch_size, models_used)
+            log_outputs = torch.log(outputs)
+
             preds = torch.max(outputs, 1)[1].to("cpu")
             true = torch.max(y_test, 1)[1].to("cpu")
             test_preds = list(preds.data.numpy())
@@ -188,7 +197,6 @@ class Ensemble():
             test_conf = confusion_matrix(test_true, test_preds)
 
         return test_losses, test_acc, test_conf
-
 
     def train_test_on_the_fly(self, X_train, y_train, X_test, y_test, num_epochs, lr=1e-5, wd=0, batch_size=None, verbose=True):
         self.criterion = torch.nn.CrossEntropyLoss()
@@ -285,7 +293,9 @@ class Ensemble():
 
                     if epoch >= num_epochs - K*c:
                         self.Ds[m][:, D_it] = layer - self.swa_avg_m1[m]
-                        D_it += 1
+
+                if epoch >= num_epochs - K*c:
+                    D_it += 1
 
         self.swa_diag = [sq_avg - torch.square(mean) for (mean, sq_avg) in zip(self.swa_avg_m1, swa_avg_m2)]
 

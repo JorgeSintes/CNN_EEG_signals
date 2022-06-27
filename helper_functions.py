@@ -106,7 +106,7 @@ def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_model
 
 def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name, swa_params=None, alpha=0.5):
 
-    CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=12)
+    CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
     split_gen = CV.split(np.zeros((X.shape[1], 1)), y_pre[0,:])
 
     y, encoding = one_hot(y_pre)
@@ -142,7 +142,7 @@ def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name
     
 def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, swa_params=None, alpha=0.5):
     
-    CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=12)
+    CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
     split_gen = CV.split(np.zeros((X.shape[1], 1)), y_pre[0,:])
 
     y, encoding = one_hot(y_pre)
@@ -154,7 +154,7 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
     for fold, (train_index, test_index) in enumerate(split_gen):
         
         accuracies, _, accuracies_swa,_ = get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes,
-                                                       nb_models, fold, run_name, swa_params, alpha)
+                                                       nb_models, fold+1, run_name, swa_params, alpha)
         
         accuracies_ens_all_folds.append(accuracies)
         accuracies_swa_all_folds.append(accuracies)
