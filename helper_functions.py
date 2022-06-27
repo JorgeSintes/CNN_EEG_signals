@@ -5,6 +5,7 @@ import seaborn as sbn
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.model_selection import KFold, StratifiedKFold
 from paper_network import Ensemble
+import itertools
 
 sbn.set_style('darkgrid')
 
@@ -56,19 +57,9 @@ def cross_validation_1_layer(X, y_pre, K, nb_models, lr=1e-5, wd=0, batch_size=6
         model.save_weights(weights_folder)
 
     return train_losses, test_losses, train_acc, test_acc, train_conf, test_conf
+    
 
-
-def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name, swa_params=None, alpha=0.5):
-
-    CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=12)
-    split_gen = CV.split(np.zeros((X.shape[1], 1)), y_pre[0,:])
-
-    y, encoding = one_hot(y_pre)
-    y = torch.from_numpy(y)
-
-    for _ in range(fold):
-        train_index, test_index = next(split_gen)
-
+def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_models, fold, run_name, swa_params, alpha):
     # Taking train and test slices over subjects 
     X_train, y_train = X[:, train_index, :, :], y[:, train_index, :]
     X_test, y_test = X[:, test_index, :, :], y[:, test_index, :]
@@ -109,6 +100,27 @@ def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name
 
             loss, acc, _ = model.test(X_test, y_test, batch_size, models_used=[i])
             single_accuracies_swa.append(acc)
+            
+    return accuracies, single_accuracies, accuracies_swa, single_accuracies_swa
+
+
+def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name, swa_params=None, alpha=0.5):
+
+    CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=12)
+    split_gen = CV.split(np.zeros((X.shape[1], 1)), y_pre[0,:])
+
+    y, encoding = one_hot(y_pre)
+    y = torch.from_numpy(y)
+    
+    train_index, test_index = next(itertools.islice(split_gen, fold-1, None))
+        
+    #for _ in range(fold):
+    #    train_index, test_index = next(split_gen)
+
+    accuracies, single_accuracies, accuracies_swa, single_accuracies_swa = get_acc_fold(X, y, train_index, test_index,
+                                                                                        batch_size, nb_classes, nb_models,
+                                                                                        fold, run_name, swa_params,
+                                                                                        alpha)
 
     fig, ax = plt.subplots(1,1, figsize=(20,10))
     ax.plot(list(range(1, nb_models + 1)), accuracies, 'b', label="Test accuracies")
@@ -126,5 +138,47 @@ def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name
     ax.legend()
     fig.suptitle(f"Ensemble - Fold: {fold}, classes: {nb_classes}")
     fig.savefig(f"./figures/"+run_name[1:]+f"_{fold}_fold.pdf")
-    # plt.show()
+    
+    
+def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, swa_params=None, alpha=0.5):
+    
+    CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=12)
+    split_gen = CV.split(np.zeros((X.shape[1], 1)), y_pre[0,:])
 
+    y, encoding = one_hot(y_pre)
+    y = torch.from_numpy(y)
+    
+    accuracies_ens_all_folds = []
+    accuracies_swa_all_folds = []
+    
+    for fold, (train_index, test_index) in enumerate(split_gen):
+        
+        accuracies, _, accuracies_swa,_ = get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes,
+                                                       nb_models, fold, run_name, swa_params, alpha)
+        
+        accuracies_ens_all_folds.append(accuracies)
+        accuracies_swa_all_folds.append(accuracies)
+        
+    accuracies_ens_all_folds = np.asarray(accuracies_ens_all_folds)
+    accuracies_swa_all_folds = np.asarray(accuracies_swa_all_folds)
+    
+    avg_accs_ens = np.mean(accuracies_ens_all_folds, axis=0)
+    avg_accs_swa = np.mean(accuracies_swa_all_folds, axis=0)
+    
+    ste_accs_ens = np.std(accuracies_ens_all_folds, axis=0)/np.sqrt(5)
+    ste_accs_swa = np.std(accuracies_swa_all_folds, axis=0)/np.sqrt(5)
+    
+    plt.figure()
+    
+    plt.plot(list(range(1, nb_models + 1)), avg_accs_ens, c='b', label='ensemnle')
+    plt.errorbar(list(range(1, nb_models + 1)), avg_accs_ens, yerr=ste_accs_ens)
+    
+    plt.plot(list(range(1, nb_models + 1)), avg_accs_swa, c='g', label='swa')
+    plt.errorbar(list(range(1, nb_models + 1)), avg_accs_swa, yerr=ste_accs_swa)
+    
+    plt.xlabel="No. of models"
+    plt.ylabel="Average accuracy"
+    plt.legend()
+    plt.title('Average accuracy of models on test data across folds with errorbars')
+    plt.savefig(f"./figures/"+run_name[1:]+f"_avg_acc_fols_w-errorbars.pdf", bbox_inches='tight', format='pdf')
+    

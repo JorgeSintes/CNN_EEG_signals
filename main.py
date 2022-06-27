@@ -4,7 +4,7 @@ import json
 import time
 import numpy as np
 import torch
-from helper_functions import cross_validation_1_layer, plot_ensemble
+from helper_functions import cross_validation_1_layer, plot_ensemble, plot_ensemble_all
 
 def main(plot=False):
     # if not os.path.isfile("./data/filtered_data/signals.npy") and not os.path.isfile("./data/filtered_data/targets.npy"):
@@ -83,9 +83,10 @@ def main(plot=False):
         file.close()
 
     if plot:
+        run_name = f"_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}"
         for k in range(1,K+1):
-            plot_ensemble(X, y_pre, K, batch_size, nb_models, len(classes), k, f"_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}", swa_params=swa_params)
-
+            plot_ensemble(X, y_pre, K, batch_size, nb_models, len(classes), k, run_name, swa_params=swa_params)
+        plot_ensemble_all(X, y_pre, K, batch_size, nb_models, len(classes), run_name, swa_params=swa_params)
 
 if __name__ == "__main__":
     main(plot=False)

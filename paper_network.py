@@ -287,7 +287,7 @@ class Ensemble():
                         self.Ds[m][:, D_it] = layer - self.swa_avg_m1[m]
                         D_it += 1
 
-        self.swa_diag = [sq_avg - torch.square(mean) for (mean, sq_avg) in zip(swa_avg_m1, swa_avg_m2)]
+        self.swa_diag = [sq_avg - torch.square(mean) for (mean, sq_avg) in zip(self.swa_avg_m1, swa_avg_m2)]
 
 
     def save_swa_results(self, folder_name=""):
