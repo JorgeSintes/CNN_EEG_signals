@@ -321,7 +321,7 @@ class Ensemble():
         if swag:
             self.swa_diag = [sq_avg - torch.square(mean) for (mean, sq_avg) in zip(self.swa_avg_m1, self.swa_avg_m2)]
 
-        load_swa_weights_model()
+        self.load_swa_weights_model()
 
     def swag_inference(self, X, y, batch_size=None, models_used=None, S=30):
         if not models_used:
@@ -370,7 +370,7 @@ class Ensemble():
 
                 swag_outputs += torch.mean(outputs, dim=0)/S
 
-            load_swa_weights_model()
+            self.load_swa_weights_model()
 
         return swag_outputs, losses
 
@@ -390,7 +390,7 @@ class Ensemble():
         self.swa_diag = swa_dict["swa_diag"]
         self.swa_Ds = swa_dict["swa_Ds"]
 
-        load_swa_weights_model()
+        self.load_swa_weights_model()
 
     def load_swa_weights_model(self):
         for model, parameters in zip(self.models, self.swa_avg_m1):
