@@ -164,6 +164,8 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
     accuracies_swa_all_folds = []
     log_pred_dens_ens_all_folds = []
     log_pred_dens_swa_all_folds = []
+    accuracies_models_all_folds = []
+    accuracies_models_all_folds_swa = []
 
     for fold, (train_index, test_index) in enumerate(split_gen):
 
@@ -172,18 +174,26 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
 
         accuracies_ens_all_folds.append(metrics["acc"])
         accuracies_swa_all_folds.append(metrics["acc_swa"])
+        
         log_pred_dens_ens_all_folds.append(metrics["log_pred_dens"])
         log_pred_dens_swa_all_folds.append(metrics["log_pred_dens_swa"])
 
+        accuracies_models_all_folds.append(metrics["single_acc"])        
+        accuracies_models_all_folds_swa.append(metrics["single_acc_swa"]) 
+        
     accuracies_ens_all_folds = np.asarray(accuracies_ens_all_folds)
     accuracies_swa_all_folds = np.asarray(accuracies_swa_all_folds)
     log_pred_dens_ens_all_folds = np.asarray(log_pred_dens_ens_all_folds)
     log_pred_dens_swa_all_folds = np.asarray(log_pred_dens_swa_all_folds)
+    accuracies_models_all_folds = np.asarray(accuracies_models_all_folds)
+    accuracies_models_all_folds_swa = np.asarray(accuracies_models_all_folds_swa)
 
     avg_accs_ens = np.mean(accuracies_ens_all_folds, axis=0)
     avg_accs_swa = np.mean(accuracies_swa_all_folds, axis=0)
     avg_log_pred_dens_ens = np.mean(log_pred_dens_ens_all_folds, axis=0)
     avg_log_pred_dens_swa = np.mean(log_pred_dens_swa_all_folds, axis=0)
+    avg_acc_models = np.mean(accuracies_models_all_folds, axis=0)
+    avg_acc_models_swa = np.mean(accuracies_models_all_folds_swa, axis=0)
 
     ste_accs_ens = np.std(accuracies_ens_all_folds, axis=0)/np.sqrt(5)
     ste_accs_swa = np.std(accuracies_swa_all_folds, axis=0)/np.sqrt(5)
@@ -197,6 +207,11 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
 
     # ax[0].plot(list(range(1, nb_models + 1)), avg_accs_swa, c='g', label='swag')
     ax[0].errorbar(list(range(1, nb_models + 1)), avg_accs_swa, yerr=ste_accs_swa, label="swag", alpha=alpha)
+    
+    ax[0].plot(list(range(1, nb_models + 1)), avg_acc_models, label='single models', alpha=alpha)
+    ax[0].plot(list(range(1, nb_models + 1)), avg_acc_models_swa, label='single models swa', alpha=alpha)
+    ax[0].axline((1,np.mean(avg_acc_models)),(10,np.mean(avg_acc_models)), linestyle='--', label='avg single models', alpha=alpha)
+    ax[0].axline((1,np.mean(avg_acc_models_swa)),(10,np.mean(avg_acc_models_swa)), linestyle='--', label='avg single models swa', alpha=alpha)
 
     ax[0].set(xlabel="No. of models", ylabel="Average accuracy", title='Average accuracy of models on test data across folds with errorbars')
     ax[0].legend()
