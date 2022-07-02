@@ -81,8 +81,10 @@ def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_model
     model.load_weights()
     accuracies = []
     single_accuracies = []
+    single_log_preds = []
     accuracies_swa = []
     single_accuracies_swa = []
+    single_log_preds_swa = []
     log_pred_densities = []
     log_pred_densities_swa = []
 
@@ -93,6 +95,7 @@ def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_model
 
         metrics = model.test(X_test, y_test, batch_size, models_used=[i])
         single_accuracies.append(metrics["acc"])
+        single_log_preds.append(metrics["log_pred_dens"])
 
     if swa_params:
         model.do_the_swa(X_train, y_train, swa_params["num_epochs"], swa_params["lr"], swa_params["K"], c=swa_params["c"], batch_size=batch_size)
@@ -104,8 +107,9 @@ def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_model
 
             metrics = model.test(X_test, y_test, batch_size, models_used=[i])
             single_accuracies_swa.append(metrics["acc"])
+            single_log_preds_swa.append(metrics["log_pred_dens"])
 
-    return {"acc": accuracies, "single_acc": single_accuracies, "acc_swa": accuracies_swa, "single_acc_swa": single_accuracies_swa, "log_pred_dens": log_pred_densities, "log_pred_dens_swa": log_pred_densities_swa}
+    return {"acc": accuracies, "single_acc": single_accuracies, "single_log_preds": single_log_preds, "acc_swa": accuracies_swa, "single_acc_swa": single_accuracies_swa, "single_log_preds_swa": single_log_preds_swa, "log_pred_dens": log_pred_densities, "log_pred_dens_swa": log_pred_densities_swa}
 
 
 def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name, swa_params=None, alpha=0.5):
@@ -125,8 +129,10 @@ def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name
 
     accuracies = metrics["acc"]
     single_accuracies = metrics["single_acc"]
+    single_log_preds = metrics["single_log_preds"]
     accuracies_swa = metrics["acc_swa"]
     single_accuracies_swa = metrics["single_acc_swa"]
+    single_log_preds_swa = metrics["single_log_preds_swa"]
     log_pred_densities = metrics["log_pred_dens"]
     log_pred_densities_swa = metrics["log_pred_dens_swa"]
 
@@ -160,67 +166,74 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
     y, encoding = one_hot(y_pre)
     y = torch.from_numpy(y)
 
-    accuracies_ens_all_folds = []
-    accuracies_swa_all_folds = []
-    log_pred_dens_ens_all_folds = []
-    log_pred_dens_swa_all_folds = []
-    accuracies_models_all_folds = []
-    accuracies_models_all_folds_swa = []
+    acc_ens = np.zeros((K, nb_models))
+    acc_swa = np.zeros((K, nb_models))
+    acc_mods = np.zeros((K, nb_models))
+    acc_mods_swa = np.zeros((K, nb_models))
+
+    lpd_ens = np.zeros((K, nb_models))
+    lpd_swa = np.zeros((K, nb_models))
+    lpd_mods = np.zeros((K, nb_models))
+    lpd_mods_swa = np.zeros((K, nb_models))
+
 
     for fold, (train_index, test_index) in enumerate(split_gen):
 
         metrics = get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes,
                                                        nb_models, fold+1, run_name, swa_params)
 
-        accuracies_ens_all_folds.append(metrics["acc"])
-        accuracies_swa_all_folds.append(metrics["acc_swa"])
-        
-        log_pred_dens_ens_all_folds.append(metrics["log_pred_dens"])
-        log_pred_dens_swa_all_folds.append(metrics["log_pred_dens_swa"])
+        acc_ens[fold, :] = metrics["acc"]
+        acc_swa[fold,:] = metrics["acc_swa"])
+        acc_mods[fold,:] = metrics["single_acc"]
+        acc_mods_swa[fold,:] = metrics["single_acc_swa"]
 
-        accuracies_models_all_folds.append(metrics["single_acc"])        
-        accuracies_models_all_folds_swa.append(metrics["single_acc_swa"]) 
-        
-    accuracies_ens_all_folds = np.asarray(accuracies_ens_all_folds)
-    accuracies_swa_all_folds = np.asarray(accuracies_swa_all_folds)
-    log_pred_dens_ens_all_folds = np.asarray(log_pred_dens_ens_all_folds)
-    log_pred_dens_swa_all_folds = np.asarray(log_pred_dens_swa_all_folds)
-    accuracies_models_all_folds = np.asarray(accuracies_models_all_folds)
-    accuracies_models_all_folds_swa = np.asarray(accuracies_models_all_folds_swa)
+        lpd_ens[fold,:] = metrics["log_pred_dens"]
+        lpd_swa[fold,:] = metrics["log_pred_dens_swa"]
+        lpd_mods[fold,:] = metrics["single_log_preds"]
+        lpd_mods_swa[fold,:] = metrics["single_log_preds_swa"]
 
-    avg_accs_ens = np.mean(accuracies_ens_all_folds, axis=0)
-    avg_accs_swa = np.mean(accuracies_swa_all_folds, axis=0)
-    avg_log_pred_dens_ens = np.mean(log_pred_dens_ens_all_folds, axis=0)
-    avg_log_pred_dens_swa = np.mean(log_pred_dens_swa_all_folds, axis=0)
-    avg_acc_models = np.mean(accuracies_models_all_folds, axis=0)
-    avg_acc_models_swa = np.mean(accuracies_models_all_folds_swa, axis=0)
 
-    ste_accs_ens = np.std(accuracies_ens_all_folds, axis=0)/np.sqrt(5)
-    ste_accs_swa = np.std(accuracies_swa_all_folds, axis=0)/np.sqrt(5)
-    ste_log_pred_dens_ens = np.std(log_pred_dens_ens_all_folds, axis=0)/np.sqrt(5)
-    ste_log_pred_dens_swa = np.std(log_pred_dens_swa_all_folds, axis=0)/np.sqrt(5)
+    avg_acc_ens = np.mean(acc_ens, axis=0)
+    avg_acc_swa = np.mean(acc_swa, axis=0)
+    avg_acc_mods = np.mean(acc_mods, axis=0)
+    avg_acc_mods_swa = np.mean(acc_mods_swa, axis=0)
+
+    avg_lpd_ens = np.mean(lpd_ens, axis=0)
+    avg_lpd_swa = np.mean(lpd_swa, axis=0)
+    avg_lpd_mods = np.mean(lpd_mods, axis=0)
+    avg_lpd_mods_swa = np.mean(lpd_mods_swa, axis=0)
+
+    ste_acc_ens = np.std(acc_ens, axis=0)/np.sqrt(K)
+    ste_acc_swa = np.std(acc_swa, axis=0)/np.sqrt(K)
+    ste_lpd_ens = np.std(lpd_ens, axis=0)/np.sqrt(K)
+    ste_lpd_swa = np.std(lpd_swa, axis=0)/np.sqrt(K)
 
     fig, ax = plt.subplots(1,2, figsize=(20,10))
 
-    # ax[0].plot(list(range(1, nb_models + 1)), avg_accs_ens, c='b', label='ensemble')
-    ax[0].errorbar(list(range(1, nb_models + 1)), avg_accs_ens, yerr=ste_accs_ens, c='C0', label="ensemble", alpha=alpha)
+    # ax[0].plot(list(range(1, nb_models + 1)), avg_acc_ens, c='b', label='ensemble')
+    ax[0].errorbar(list(range(1, nb_models + 1)), avg_acc_ens, yerr=ste_acc_ens, c='C0', label="ensemble", alpha=alpha)
 
-    # ax[0].plot(list(range(1, nb_models + 1)), avg_accs_swa, c='g', label='swag')
-    ax[0].errorbar(list(range(1, nb_models + 1)), avg_accs_swa, yerr=ste_accs_swa, c='C1', label="swag", alpha=alpha)
-    
-    ax[0].plot(list(range(1, nb_models + 1)), avg_acc_models, c='C0', label='single models', alpha=alpha)
-    ax[0].plot(list(range(1, nb_models + 1)), avg_acc_models_swa, c='C1', label='single models swa', alpha=alpha)
-    ax[0].axline((1,np.mean(avg_acc_models)),(10,np.mean(avg_acc_models)), c='C0', linestyle='--', label='avg single models', alpha=alpha)
-    ax[0].axline((1,np.mean(avg_acc_models_swa)),(10,np.mean(avg_acc_models_swa)), c='C1', linestyle='--', label='avg single models swa', alpha=alpha)
+    # ax[0].plot(list(range(1, nb_models + 1)), avg_acc_swa, c='g', label='swag')
+    ax[0].errorbar(list(range(1, nb_models + 1)), avg_acc_swa, yerr=ste_acc_swa, c='C2', label="swag", alpha=alpha)
+
+    ax[0].plot(list(range(1, nb_models + 1)), avg_acc_mods, c='C9', label='single models', alpha=alpha, marker="o")
+    ax[0].plot(list(range(1, nb_models + 1)), avg_acc_mods_swa, c='C8', label='single models swa', alpha=alpha, marker="o")
+    ax[0].axline((1,np.mean(avg_acc_mods)),(10,np.mean(avg_acc_mods)), c='C9', linestyle='--', label='avg single models', alpha=alpha)
+    ax[0].axline((1,np.mean(avg_acc_mods_swa)),(10,np.mean(avg_acc_mods_swa)), c='C8', linestyle='--', label='avg single models swa', alpha=alpha)
 
     ax[0].set(xlabel="No. of models", ylabel="Average accuracy", title='Average accuracy of models on test data across folds with errorbars')
     ax[0].legend()
 
-    # ax[1].plot(list(range(1, nb_models + 1)), avg_log_pred_dens_ens, c='b', label='ensemble')
-    ax[1].errorbar(list(range(1, nb_models + 1)), avg_log_pred_dens_ens, yerr=ste_log_pred_dens_ens, c='C0', label="ensemble", alpha=alpha)
+    # ax[1].plot(list(range(1, nb_models + 1)), avg_lpd_ens, c='b', label='ensemble')
+    ax[1].errorbar(list(range(1, nb_models + 1)), avg_lpd_ens, yerr=ste_lpd_ens, c='C0', label="ensemble", alpha=alpha)
 
-    # ax[1].plot(list(range(1, nb_models + 1)), avg_log_pred_dens_swa, c='g', label='swag')
-    ax[1].errorbar(list(range(1, nb_models + 1)), avg_log_pred_dens_swa, yerr=ste_log_pred_dens_swa, c='C1', label="swag", alpha=alpha)
+    # ax[1].plot(list(range(1, nb_models + 1)), avg_lpd_swa, c='g', label='swag')
+    ax[1].errorbar(list(range(1, nb_models + 1)), avg_lpd_swa, yerr=ste_lpd_swa, c='C2', label="swag", alpha=alpha)
+
+    ax[1].plot(list(range(1, nb_models + 1)), avg_lpd_mods, c='C9', label='single models', alpha=alpha, marker="o")
+    ax[1].plot(list(range(1, nb_models + 1)), avg_lpd_mods_swa, c='C8', label='single models swa', alpha=alpha, marker="o")
+    ax[1].axline((1,np.mean(avg_lpd_mods)),(10,np.mean(avg_lpd_mods)), c='C9', linestyle='--', label='avg single models', alpha=alpha)
+    ax[1].axline((1,np.mean(avg_lpd_mods_swa)),(10,np.mean(avg_lpd_mods_swa)), c='C8', linestyle='--', label='avg single models swa', alpha=alpha)
 
     ax[1].set(xlabel="No. of models", ylabel="Average log PD", title='Average log pred dens of models on test data across folds with errorbars')
     ax[1].legend()
