@@ -137,10 +137,10 @@ class Ensemble():
                     optimizer.step()
 
         # Compute and return training accuracy after training
-        return self.test(X_train, y_train, batch_size=batch_size)
+        return self.test(X_train, y_train, self.inference, batch_size=batch_size)
 
 
-    def inference(self, X, y, batch_size=None, models_used=None):
+    def inference(self, X, y, batch_size=None, models_used=None, **kwargs):
         if not models_used:
             models_used = range(self.nb_models)
         elif type(models_used) == int:
@@ -181,9 +181,9 @@ class Ensemble():
         return outputs, losses
 
 
-    def test(self, X_test, y_test, batch_size=None, models_used=None):
+    def test(self, X_test, y_test, inference_function, batch_size=None, models_used=None, S=30):
 
-        outputs, test_losses = self.inference(X_test, y_test, batch_size, models_used)
+        outputs, test_losses = inference_function(X_test, y_test, batch_size, models_used, S=S)
         log_outputs = torch.log(outputs)
 
         preds = torch.max(outputs, 1)[1].to("cpu")
@@ -213,7 +213,7 @@ class Ensemble():
 
         for epoch in range(num_epochs):
             train_metrics = self.train(X_train, y_train, 1, lr=lr, batch_size=batch_size)
-            test_metrics = self.test(X_test, y_test, batch_size=batch_size)
+            test_metrics = self.test(X_test, y_test, self.inference, batch_size=batch_size)
 
             # Unpack results
             train_losses[:, epoch] = train_metrics["losses"]
@@ -257,9 +257,13 @@ class Ensemble():
             model.load_state_dict(state_dicts[i])
 
 
-    def do_the_swa(self, X_train, y_train, num_epochs, lr, K, c=1, batch_size=None):
+    def train_swag(self, X_train, y_train, num_epochs, lr, K, c=1, batch_size=None, swag=True):
 
         sgds = [torch.optim.SGD(model.parameters(), lr=lr) for model in self.models]
+
+        if not self.criterion:
+            self.criterion = torch.nn.CrossEntropyLoss()
+            self.criterion = self.criterion.to(self.device)
 
         X_train = X_train.to(self.device)
         y_train = y_train.to(self.device)
@@ -269,12 +273,17 @@ class Ensemble():
             y_train_batches = torch.split(y_train, batch_size, dim=0)
 
         self.swa_avg_m1 = [torch.nn.utils.parameters_to_vector(model.parameters()) for model in self.models]
-        self.swa_avg_m2 = [torch.square(el) for el in self.swa_avg_m1]
-        self.Ds = [torch.zeros((self.swa_avg_m1[0].shape[0], K)) for _ in range(len(self.swa_avg_m1))]
-        D_it = 0
+        if swag:
+            self.swa_avg_m2 = [torch.square(el) for el in self.swa_avg_m1]
+            self.Ds = [torch.zeros((self.swa_avg_m1[0].shape[0], K)) for _ in range(len(self.swa_avg_m1))]
+            D_it = 0
+        else:
+            self.swa_avg_m2 = None
+            self.Ds = None
+            self.swa_diag = None
 
         for epoch in range(num_epochs):
-            print(f"Doing SWA! Epoch {epoch+1}/{num_epochs}")
+            print(f"Doing SWAG! Epoch {epoch+1}/{num_epochs}")
             for model, optimizer in zip(self.models, sgds):
                 model.train()
 
@@ -299,29 +308,91 @@ class Ensemble():
                 for m, model in enumerate(self.models):
                     layer = torch.nn.utils.parameters_to_vector(model.parameters())
                     self.swa_avg_m1[m] = (n * self.swa_avg_m1[m] + layer) / (n + 1)
-                    self.swa_avg_m2[m] = (n * self.swa_avg_m2[m] + torch.square(layer)) / (n + 1)
 
-                    if epoch >= num_epochs - K*c:
-                        self.Ds[m][:, D_it] = layer - self.swa_avg_m1[m]
+                    if swag:
+                        self.swa_avg_m2[m] = (n * self.swa_avg_m2[m] + torch.square(layer)) / (n + 1)
 
-                if epoch >= num_epochs - K*c:
+                        if epoch >= num_epochs - K*c:
+                            self.Ds[m][:, D_it] = layer - self.swa_avg_m1[m]
+
+                if swag and (epoch >= num_epochs - K*c):
                     D_it += 1
 
-        self.swa_diag = [sq_avg - torch.square(mean) for (mean, sq_avg) in zip(self.swa_avg_m1, self.swa_avg_m2)]
+        if swag:
+            self.swa_diag = [sq_avg - torch.square(mean) for (mean, sq_avg) in zip(self.swa_avg_m1, self.swa_avg_m2)]
+
+        load_swa_weights_model()
+
+    def swag_inference(self, X, y, batch_size=None, models_used=None, S=30):
+        if not models_used:
+            models_used = range(self.nb_models)
+        elif type(models_used) == int:
+            models_used = range(models_used)
+
+        if not self.criterion:
+            self.criterion = torch.nn.CrossEntropyLoss()
+            self.criterion = self.criterion.to(self.device)
+
+        with torch.no_grad():
+
+            outputs = torch.zeros((len(models_used), X.shape[0], self.nb_classes)).to(self.device)
+            swag_outputs = torch.zeros((X.shape[0], self.nb_classes)).to(self.device)
+            losses = torch.zeros((len(models_used)))
+            X = X.to(self.device)
+            y = y.to(self.device)
+
+            distributions = []
+            for model_no in enumerate(models_used):
+                cov_matrix = torch.diag(self.swa_diag[model_no]/2) + self.Ds[model_no] @ self.Ds[model_no].T / (2*(self.Ds[model_no].shape[1] - 1))
+                distributions.append(torch.distributions.multivariate_normal.MultivariateNormal(self.swa_avg_m1[model_no], covariance_matrix=cov_matrix))
+
+            for s in range(S):
+                for i, model_no in enumerate(models_used):
+                    model = self.models[model_no]
+                    model.eval()
+
+                    torch.nn.utils.vector_to_parameters(distributions[model_no].sample(), model)
+
+                    if batch_size:
+                        X_test_batches = torch.split(X, batch_size, dim=0)
+
+                        idx = 0
+                        for x in X_test_batches:
+                            out = model(x)
+                            outputs[i, idx:idx+x.shape[0], :] = torch.nn.functional.softmax(out, dim=1)
+                            idx += x.shape[0]
+
+                    else:
+                        out = model(X)
+                        outputs[i, :, :] = torch.nn.functional.softmax(out, dim=1)
+
+                    losses[i] += self.criterion(outputs[i,:,:], y)/S
+
+                swag_outputs += torch.mean(outputs, dim=0)/S
+
+            load_swa_weights_model()
+
+        return swag_outputs, losses
 
 
-    def save_swa_results(self, folder_name=""):
+    def save_swag_results(self):
         swa_dict = {"swa_avg_m1": self.swa_avg_m1,
                     "swa_diag": self.swa_diag,
                     "swa_Ds": self.Ds}
 
-        torch.save(swa_dict, f"./models/" + folder_name + f"/swa_results_fold_{self.k}"+self.run_name+".tar")
+        torch.save(swa_dict, f"./models/swag_results_fold_{self.k}"+self.run_name+".tar")
 
 
-    def load_swa_results(self):
-        swa_dict = torch.load(f"./models/swa_results_fold_{self.k}"+self.run_name+".tar")
+    def load_swag_results(self):
+        swa_dict = torch.load(f"./models/swag_results_fold_{self.k}"+self.run_name+".tar")
 
         self.swa_avg_m1 = swa_dict["swa_avg_m1"]
         self.swa_diag = swa_dict["swa_diag"]
         self.swa_Ds = swa_dict["swa_Ds"]
+
+        load_swa_weights_model()
+
+    def load_swa_weights_model(self):
+        for model, parameters in zip(self.models, self.swa_avg_m1):
+            torch.nn.utils.vector_to_parameters(model, parameters)
 

@@ -16,7 +16,7 @@ def one_hot(array):
     return onehot, unique
 
 
-def cross_validation_1_layer(X, y_pre, K, nb_models, lr=1e-5, wd=0, batch_size=64, num_epochs=2000, nb_classes=4, output_file=None, run_name="", w_init_params=(0,1), weights_folder=""):
+def cross_validation_1_layer(X, y_pre, K, nb_models, lr=1e-5, wd=0, batch_size=64, num_epochs=2000, nb_classes=4, output_file=None, run_name="", w_init_params=(0,False), weights_folder=""):
     CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
 
     train_acc = np.zeros((K, num_epochs))
@@ -59,6 +59,41 @@ def cross_validation_1_layer(X, y_pre, K, nb_models, lr=1e-5, wd=0, batch_size=6
     return train_losses, test_losses, train_acc, test_acc, train_conf, test_conf
 
 
+# def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, swa_params=None, alpha=0.5):
+def do_the_swag(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, swag_params, swag=True):
+    CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
+
+    y, encoding = one_hot(y_pre)
+    y = torch.from_numpy(y)
+
+    # Making the CV dependent on the shape of X which differs depending on 'separated'
+    split_gen = CV.split(np.zeros((X.shape[1], 1)), y_pre[0,:])
+
+    for i, (train_index, test_index) in enumerate(split_gen):
+
+        # Taking train and test slices over subjects 
+        X_train, y_train = X[:, train_index, :, :], y[:, train_index, :]
+        X_test, y_test = X[:, test_index, :, :], y[:, test_index, :]
+
+        # Reshaping arrays to have all observations in first dimension
+        X_train = X_train.reshape(-1, X.shape[2], X.shape[3])
+        y_train = y_train.reshape(-1, nb_classes)
+
+        X_test = X_test.reshape(-1, X.shape[2], X.shape[3])
+        y_test = y_test.reshape(-1, nb_classes)
+
+        # Standardising
+        mu = torch.mean(X_train, dim=(0,2)).reshape(1,-1,1)
+        sigma = torch.std(X_train, dim=(0,2)).reshape(1,-1,1)
+        X_train = (X_train - mu) / sigma
+        X_test  = (X_test - mu) / sigma
+
+        model = Ensemble(nb_models, nb_classes, k=i+1, run_name=run_name, transfer_to_device=True)
+        model.load_weights()
+        model.train_swag(X_train, y_train, num_epochs=swag_params["num_epochs"], lr=swag_params["lr"], K=swag_params["K"], c=swag_params["c"], batch_size=batch_size, swag=swag_params["swag"])
+        model.save_swa_results()
+
+
 def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_models, fold, run_name, swa_params):
     # Taking train and test slices over subjects 
     X_train, y_train = X[:, train_index, :, :], y[:, train_index, :]
@@ -89,23 +124,24 @@ def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_model
     log_pred_densities_swa = []
 
     for i in range(nb_models):
-        metrics = model.test(X_test, y_test, batch_size, models_used=i+1)
+        metrics = model.test(X_test, y_test, model.inference, batch_size, models_used=i+1)
         accuracies.append(metrics["acc"])
         log_pred_densities.append(metrics["log_pred_dens"])
 
-        metrics = model.test(X_test, y_test, batch_size, models_used=[i])
+        metrics = model.test(X_test, y_test, model.inference, batch_size, models_used=[i])
         single_accuracies.append(metrics["acc"])
         single_log_preds.append(metrics["log_pred_dens"])
 
     if swa_params:
-        model.do_the_swa(X_train, y_train, swa_params["num_epochs"], swa_params["lr"], swa_params["K"], c=swa_params["c"], batch_size=batch_size)
+        # model.train_swag(X_train, y_train, swa_params["num_epochs"], swa_params["lr"], swa_params["K"], c=swa_params["c"], batch_size=batch_size, swag=False)
+        model.load_swa_results()
 
         for i in range(nb_models):
-            metrics = model.test(X_test, y_test, batch_size, models_used=i+1)
+            metrics = model.test(X_test, y_test, model.inference, batch_size, models_used=i+1)
             accuracies_swa.append(metrics["acc"])
             log_pred_densities_swa.append(metrics["log_pred_dens"])
 
-            metrics = model.test(X_test, y_test, batch_size, models_used=[i])
+            metrics = model.test(X_test, y_test, model.inference, batch_size, models_used=[i])
             single_accuracies_swa.append(metrics["acc"])
             single_log_preds_swa.append(metrics["log_pred_dens"])
 
@@ -183,7 +219,7 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
                                                        nb_models, fold+1, run_name, swa_params)
 
         acc_ens[fold, :] = metrics["acc"]
-        acc_swa[fold,:] = metrics["acc_swa"])
+        acc_swa[fold,:] = metrics["acc_swa"]
         acc_mods[fold,:] = metrics["single_acc"]
         acc_mods_swa[fold,:] = metrics["single_acc_swa"]
 
