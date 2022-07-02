@@ -351,7 +351,7 @@ class Ensemble():
                     model = self.models[model_no]
                     model.eval()
 
-                    torch.nn.utils.vector_to_parameters(distributions[model_no].sample(), model)
+                    torch.nn.utils.vector_to_parameters(distributions[model_no].sample(), model.parameters())
 
                     if batch_size:
                         X_test_batches = torch.split(X, batch_size, dim=0)
@@ -394,5 +394,5 @@ class Ensemble():
 
     def load_swa_weights_model(self):
         for model, parameters in zip(self.models, self.swa_avg_m1):
-            torch.nn.utils.vector_to_parameters(model, parameters)
+            torch.nn.utils.vector_to_parameters(parameters, model.parameters())
 
