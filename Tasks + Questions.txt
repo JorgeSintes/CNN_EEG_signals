@@ -29,3 +29,7 @@ compute LPD and expected calibration error (uncertainty toolbox might help). htt
 Merge all the fold plots to a single one with average value and error bars (standard error = standard dev. / sqrt(N folds))
 
 Confidence metric or entropy of the distribution in order to account for uncertainty.
+
+In Average fold plot make points for individual models + dashed line for average
+
+Do SWAG.
