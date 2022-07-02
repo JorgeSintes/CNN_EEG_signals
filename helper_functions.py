@@ -59,7 +59,7 @@ def cross_validation_1_layer(X, y_pre, K, nb_models, lr=1e-5, wd=0, batch_size=6
     return train_losses, test_losses, train_acc, test_acc, train_conf, test_conf
 
 
-# def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, swa_params=None, alpha=0.5):
+# def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, swag_params=None, alpha=0.5):
 def do_the_swag(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, swag_params, swag=True):
     CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
 
@@ -91,10 +91,10 @@ def do_the_swag(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, swag_p
         model = Ensemble(nb_models, nb_classes, k=i+1, run_name=run_name, transfer_to_device=True)
         model.load_weights()
         model.train_swag(X_train, y_train, num_epochs=swag_params["num_epochs"], lr=swag_params["lr"], K=swag_params["K"], c=swag_params["c"], batch_size=batch_size, swag=swag_params["swag"])
-        model.save_swa_results()
+        model.save_swag_results()
 
 
-def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_models, fold, run_name, swa_params):
+def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_models, fold, run_name, swag_params):
     # Taking train and test slices over subjects 
     X_train, y_train = X[:, train_index, :, :], y[:, train_index, :]
     X_test, y_test = X[:, test_index, :, :], y[:, test_index, :]
@@ -132,9 +132,9 @@ def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_model
         single_accuracies.append(metrics["acc"])
         single_log_preds.append(metrics["log_pred_dens"])
 
-    if swa_params:
-        # model.train_swag(X_train, y_train, swa_params["num_epochs"], swa_params["lr"], swa_params["K"], c=swa_params["c"], batch_size=batch_size, swag=False)
-        model.load_swa_results()
+    if swag_params:
+        # model.train_swag(X_train, y_train, swag_params["num_epochs"], swag_params["lr"], swag_params["K"], c=swag_params["c"], batch_size=batch_size, swag=False)
+        model.load_swag_results()
 
         for i in range(nb_models):
             metrics = model.test(X_test, y_test, model.inference, batch_size, models_used=i+1)
@@ -148,7 +148,7 @@ def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_model
     return {"acc": accuracies, "single_acc": single_accuracies, "single_log_preds": single_log_preds, "acc_swa": accuracies_swa, "single_acc_swa": single_accuracies_swa, "single_log_preds_swa": single_log_preds_swa, "log_pred_dens": log_pred_densities, "log_pred_dens_swa": log_pred_densities_swa}
 
 
-def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name, swa_params=None, alpha=0.5):
+def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name, swag_params=None, alpha=0.5):
 
     CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
     split_gen = CV.split(np.zeros((X.shape[1], 1)), y_pre[0,:])
@@ -161,7 +161,7 @@ def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name
     #for _ in range(fold):
     #    train_index, test_index = next(split_gen)
 
-    metrics = get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_models, fold, run_name, swa_params)
+    metrics = get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_models, fold, run_name, swag_params)
 
     accuracies = metrics["acc"]
     single_accuracies = metrics["single_acc"]
@@ -179,7 +179,7 @@ def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name
     for single_acc in single_accuracies:
         ax[0].plot(list(range(1, nb_models + 1)), [single_acc]*nb_models, 'g', alpha=alpha)
 
-    if swa_params:
+    if swag_params:
         ax[0].plot(list(range(1, nb_models + 1)), accuracies_swa, 'r', label="Test accuracies after SWA")
         ax[1].plot(list(range(1, nb_models + 1)), log_pred_densities_swa, 'r', label="Test LPD after SWA")
 
@@ -194,7 +194,7 @@ def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name
     fig.savefig(f"./figures/"+run_name[1:]+f"_{fold}_fold.pdf")
 
 
-def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, swa_params=None, alpha=0.5):
+def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, swag_params=None, alpha=0.5):
 
     CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
     split_gen = CV.split(np.zeros((X.shape[1], 1)), y_pre[0,:])
@@ -216,7 +216,7 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
     for fold, (train_index, test_index) in enumerate(split_gen):
 
         metrics = get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes,
-                                                       nb_models, fold+1, run_name, swa_params)
+                                                       nb_models, fold+1, run_name, swag_params)
 
         acc_ens[fold, :] = metrics["acc"]
         acc_swa[fold,:] = metrics["acc_swa"]
