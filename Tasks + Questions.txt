@@ -33,3 +33,16 @@ Confidence metric or entropy of the distribution in order to account for uncerta
 In Average fold plot make points for individual models + dashed line for average
 
 Do SWAG.
+
+
+
+OWN questions/comments from reading through code:
+
+In swag_inference:
+ -Line 345, should pass something else du to ennumerate -> might break
+ 
+ -Invert for loop of model and S samples to save space.
+
+ -Try using LowRankMultivariateNormal instead of the regular one
+
+ -

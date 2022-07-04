@@ -10,13 +10,13 @@ def main(plot=False):
     # if not os.path.isfile("./data/filtered_data/signals.npy") and not os.path.isfile("./data/filtered_data/targets.npy"):
     #     load_data()
 
-    K = 5
-    lr = 1e-5
-    wd = 0
+    K = 5                       # Number of cross-validation folds 
+    lr = 1e-5                   # learning rate
+    wd = 0                      # weight decay of optimizer
     batch_size = 16
     num_epochs = 100
     nb_models = 10
-    nb_subs = 100
+    nb_subs = 100               # number of subjscts
     w_init_params = (0, False)      # mean and std of initialized weights of models in Ensemble
     classes = ["L", "R", "0"]   # selected classes - possible classes: "L", "R", "LR", "F", "0"
 
@@ -35,9 +35,9 @@ def main(plot=False):
     swag_params = {
             "num_epochs": 2,
             "lr": 1e-5,
-            "K": 1,
-            "c": 1,
-            "swag": True
+            "K": 1,                     # Number of model weights to construct covariance matrix of swag from, see paper
+            "c": 1,                     # every c-th iteration of SGD for swa counts for computing mean and covariance matrix of swa
+            "swag": True                # Do swag if true
             }
 
     if batch_size:
