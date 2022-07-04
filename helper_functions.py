@@ -114,19 +114,19 @@ def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_model
 
     model = Ensemble(nb_models, nb_classes, k=fold, run_name=run_name, transfer_to_device=True)
     model.load_weights()
-    
+
     accuracies = []
     accuracies_swa = []
     accuracies_swag = []
-    
+
     single_accuracies = []
     single_accuracies_swa = []
     single_accuracies_swag = []
-    
+
     single_log_preds = []
     single_log_preds_swa = []
     single_log_preds_swag = []
-    
+
     log_pred_densities = []
     log_pred_densities_swa = []
     log_pred_densities_swag = []
@@ -141,40 +141,38 @@ def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_model
         single_log_preds.append(metrics["log_pred_dens"])
 
     if swag_params:
-        
+
         model.load_swag_results()
-        
+
         # SWA PART
-        
+
         if swag_params['swa']:
         # model.train_swag(X_train, y_train, swag_params["num_epochs"], swag_params["lr"], swag_params["K"], c=swag_params["c"], batch_size=batch_size, swag=False)
-            
-    
+
+
             for i in range(nb_models):
                 metrics = model.test(X_test, y_test, model.inference, batch_size, models_used=i+1)
                 accuracies_swa.append(metrics["acc"])
                 log_pred_densities_swa.append(metrics["log_pred_dens"])
-    
+
                 metrics = model.test(X_test, y_test, model.inference, batch_size, models_used=[i])
                 single_accuracies_swa.append(metrics["acc"])
                 single_log_preds_swa.append(metrics["log_pred_dens"])
-                
-            
+
+
         # SWAG PART
-        
+
         if swag_params['swag']:
-        
-    
+
+
             for i in range(nb_models):
                 metrics = model.test(X_test, y_test, model.swag_inference, batch_size, models_used=i+1)
                 accuracies_swag.append(metrics["acc"])
                 log_pred_densities_swag.append(metrics["log_pred_dens"])
-    
+
                 metrics = model.test(X_test, y_test, model.swag_inference, batch_size, models_used=[i])
                 single_accuracies_swag.append(metrics["acc"])
                 single_log_preds_swag.append(metrics["log_pred_dens"])
-            
-            
 
     return {"acc": accuracies, "acc_swa": accuracies_swa, "acc_swag": accuracies_swag,
             "single_acc": single_accuracies, "single_acc_swa": single_accuracies_swa, "single_acc_swag": single_accuracies_swag,
@@ -238,13 +236,19 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
 
     acc_ens = np.zeros((K, nb_models))
     acc_swa = np.zeros((K, nb_models))
+    acc_swag = np.zeros((K, nb_models))
+
     acc_mods = np.zeros((K, nb_models))
     acc_mods_swa = np.zeros((K, nb_models))
+    acc_mods_swag = np.zeros((K, nb_models))
 
     lpd_ens = np.zeros((K, nb_models))
     lpd_swa = np.zeros((K, nb_models))
+    lpd_swag = np.zeros((K, nb_models))
+
     lpd_mods = np.zeros((K, nb_models))
     lpd_mods_swa = np.zeros((K, nb_models))
+    lpd_mods_swag = np.zeros((K, nb_models))
 
 
     for fold, (train_index, test_index) in enumerate(split_gen):
@@ -254,58 +258,76 @@ def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, 
 
         acc_ens[fold, :] = metrics["acc"]
         acc_swa[fold,:] = metrics["acc_swa"]
+        acc_swag[fold,:] = metrics["acc_swag"]
+
         acc_mods[fold,:] = metrics["single_acc"]
         acc_mods_swa[fold,:] = metrics["single_acc_swa"]
+        acc_mods_swag[fold,:] = metrics["single_acc_swag"]
 
         lpd_ens[fold,:] = metrics["log_pred_dens"]
         lpd_swa[fold,:] = metrics["log_pred_dens_swa"]
+        lpd_swag[fold,:] = metrics["log_pred_dens_swag"]
+
         lpd_mods[fold,:] = metrics["single_log_preds"]
         lpd_mods_swa[fold,:] = metrics["single_log_preds_swa"]
+        lpd_mods_swag[fold,:] = metrics["single_log_preds_swag"]
 
 
     avg_acc_ens = np.mean(acc_ens, axis=0)
     avg_acc_swa = np.mean(acc_swa, axis=0)
+    avg_acc_swag = np.mean(acc_swag, axis=0)
+
     avg_acc_mods = np.mean(acc_mods, axis=0)
     avg_acc_mods_swa = np.mean(acc_mods_swa, axis=0)
+    avg_acc_mods_swag = np.mean(acc_mods_swag, axis=0)
 
     avg_lpd_ens = np.mean(lpd_ens, axis=0)
     avg_lpd_swa = np.mean(lpd_swa, axis=0)
+    avg_lpd_swag = np.mean(lpd_swag, axis=0)
+
     avg_lpd_mods = np.mean(lpd_mods, axis=0)
     avg_lpd_mods_swa = np.mean(lpd_mods_swa, axis=0)
+    avg_lpd_mods_swag = np.mean(lpd_mods_swag, axis=0)
 
     ste_acc_ens = np.std(acc_ens, axis=0)/np.sqrt(K)
     ste_acc_swa = np.std(acc_swa, axis=0)/np.sqrt(K)
+    ste_acc_swag = np.std(acc_swag, axis=0)/np.sqrt(K)
+
     ste_lpd_ens = np.std(lpd_ens, axis=0)/np.sqrt(K)
     ste_lpd_swa = np.std(lpd_swa, axis=0)/np.sqrt(K)
+    ste_lpd_swag = np.std(lpd_swag, axis=0)/np.sqrt(K)
 
     fig, ax = plt.subplots(1,2, figsize=(20,10))
 
-    # ax[0].plot(list(range(1, nb_models + 1)), avg_acc_ens, c='b', label='ensemble')
     ax[0].errorbar(list(range(1, nb_models + 1)), avg_acc_ens, yerr=ste_acc_ens, c='C0', label="ensemble", alpha=alpha)
-
-    # ax[0].plot(list(range(1, nb_models + 1)), avg_acc_swa, c='g', label='swag')
-    ax[0].errorbar(list(range(1, nb_models + 1)), avg_acc_swa, yerr=ste_acc_swa, c='C2', label="swag", alpha=alpha)
+    ax[0].errorbar(list(range(1, nb_models + 1)), avg_acc_swa, yerr=ste_acc_swa, c='C2', label="swa", alpha=alpha)
+    ax[0].errorbar(list(range(1, nb_models + 1)), avg_acc_swag, yerr=ste_acc_swag, c='C4', label="swag", alpha=alpha)
 
     ax[0].plot(list(range(1, nb_models + 1)), avg_acc_mods, c='C9', label='single models', alpha=alpha, marker="o")
     ax[0].plot(list(range(1, nb_models + 1)), avg_acc_mods_swa, c='C8', label='single models swa', alpha=alpha, marker="o")
+    ax[0].plot(list(range(1, nb_models + 1)), avg_acc_mods_swag, c='C6', label='single models swag', alpha=alpha, marker="o")
+
     ax[0].axline((1,np.mean(avg_acc_mods)),(10,np.mean(avg_acc_mods)), c='C9', linestyle='--', label='avg single models', alpha=alpha)
     ax[0].axline((1,np.mean(avg_acc_mods_swa)),(10,np.mean(avg_acc_mods_swa)), c='C8', linestyle='--', label='avg single models swa', alpha=alpha)
+    ax[0].axline((1,np.mean(avg_acc_mods_swag)),(10,np.mean(avg_acc_mods_swag)), c='C6', linestyle='--', label='avg single models swag', alpha=alpha)
 
     ax[0].set(xlabel="No. of models", ylabel="Average accuracy", title='Average accuracy of models on test data across folds with errorbars')
     ax[0].legend()
 
-    # ax[1].plot(list(range(1, nb_models + 1)), avg_lpd_ens, c='b', label='ensemble')
     ax[1].errorbar(list(range(1, nb_models + 1)), avg_lpd_ens, yerr=ste_lpd_ens, c='C0', label="ensemble", alpha=alpha)
-
-    # ax[1].plot(list(range(1, nb_models + 1)), avg_lpd_swa, c='g', label='swag')
-    ax[1].errorbar(list(range(1, nb_models + 1)), avg_lpd_swa, yerr=ste_lpd_swa, c='C2', label="swag", alpha=alpha)
+    ax[1].errorbar(list(range(1, nb_models + 1)), avg_lpd_swa, yerr=ste_lpd_swa, c='C2', label="swa", alpha=alpha)
+    ax[1].errorbar(list(range(1, nb_models + 1)), avg_lpd_swag, yerr=ste_lpd_swag, c='C4', label="swag", alpha=alpha)
 
     ax[1].plot(list(range(1, nb_models + 1)), avg_lpd_mods, c='C9', label='single models', alpha=alpha, marker="o")
     ax[1].plot(list(range(1, nb_models + 1)), avg_lpd_mods_swa, c='C8', label='single models swa', alpha=alpha, marker="o")
+    ax[1].plot(list(range(1, nb_models + 1)), avg_lpd_mods_swag, c='C6', label='single models swag', alpha=alpha, marker="o")
+
     ax[1].axline((1,np.mean(avg_lpd_mods)),(10,np.mean(avg_lpd_mods)), c='C9', linestyle='--', label='avg single models', alpha=alpha)
     ax[1].axline((1,np.mean(avg_lpd_mods_swa)),(10,np.mean(avg_lpd_mods_swa)), c='C8', linestyle='--', label='avg single models swa', alpha=alpha)
+    ax[1].axline((1,np.mean(avg_lpd_mods_swag)),(10,np.mean(avg_lpd_mods_swag)), c='C6', linestyle='--', label='avg single models swag', alpha=alpha)
 
     ax[1].set(xlabel="No. of models", ylabel="Average log PD", title='Average log pred dens of models on test data across folds with errorbars')
     ax[1].legend()
+
     fig.savefig(f"./figures/"+run_name[1:]+f"_avg_acc_fols_w-errorbars.pdf", bbox_inches='tight', format='pdf')
 

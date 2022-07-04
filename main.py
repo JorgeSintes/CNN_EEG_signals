@@ -37,6 +37,7 @@ def main(plot=False):
             "lr": 1e-5,
             "K": 1,                     # Number of model weights to construct covariance matrix of swag from, see paper
             "c": 1,                     # every c-th iteration of SGD for swa counts for computing mean and covariance matrix of swa
+            "swa": True,                # Do swag if true
             "swag": True                # Do swag if true
             }
 
@@ -85,10 +86,10 @@ def main(plot=False):
 
     if plot:
         run_name = f"_lr_{lr}_bs_{batch_size}_classes_{len(classes)}_models_{nb_models}_w_init_{w_init_params[1]}"
-        do_the_swag(X, y_pre, K, batch_size, nb_models, len(classes), run_name, swag_params=swag_params)
+        # do_the_swag(X, y_pre, K, batch_size, nb_models, len(classes), run_name, swag_params=swag_params)
         # for k in range(1,K+1):
         #     plot_ensemble(X, y_pre, K, batch_size, nb_models, len(classes), k, run_name, swag_params=swag_params)
-        # plot_ensemble_all(X, y_pre, K, batch_size, nb_models, len(classes), run_name, swag_params=swag_params)
+        plot_ensemble_all(X, y_pre, K, batch_size, nb_models, len(classes), run_name, swag_params=swag_params)
 
 if __name__ == "__main__":
     main(plot=True)

@@ -335,24 +335,25 @@ class Ensemble():
 
         with torch.no_grad():
 
-            outputs = torch.zeros((len(models_used), X.shape[0], self.nb_classes)).to(self.device)
+            outputs = torch.zeros((S, X.shape[0], self.nb_classes)).to(self.device)
             swag_outputs = torch.zeros((X.shape[0], self.nb_classes)).to(self.device)
-            losses = torch.zeros((len(models_used)))
+            losses = torch.zeros(S).to(self.device)
             X = X.to(self.device)
             y = y.to(self.device)
 
-            distributions = []
             for model_no in models_used:
                 #cov_matrix = torch.diag(self.swa_diag[model_no]/2) + self.Ds[model_no] @ self.Ds[model_no].T / (2*(self.Ds[model_no].shape[1] - 1))
                 #distributions.append(torch.distributions.multivariate_normal.MultivariateNormal(self.swa_avg_m1[model_no], covariance_matrix=cov_matrix))
-                distributions.append(torch.distributions.lowrank_multivariate_normal.LowRankMultivariateNormal(self.swa_avg_m1[model_no], self.Ds[model_no], self.swa_diag[model_no]))
 
-            for s in range(S):
-                for i, model_no in enumerate(models_used):
+                self.swa_diag[model_no] = torch.nn.functional.relu(self.swa_diag[model_no]) + 1e-8
+
+                distribution = torch.distributions.lowrank_multivariate_normal.LowRankMultivariateNormal(loc=self.swa_avg_m1[model_no], cov_factor=self.swa_Ds[model_no]/np.sqrt(2*(self.swa_Ds[model_no].shape[1]-1)), cov_diag=self.swa_diag[model_no]/2)
+
+                for s in range(S):
                     model = self.models[model_no]
                     model.eval()
 
-                    torch.nn.utils.vector_to_parameters(distributions[model_no].sample(), model.parameters())
+                    torch.nn.utils.vector_to_parameters(distribution.sample(), model.parameters())
 
                     if batch_size:
                         X_test_batches = torch.split(X, batch_size, dim=0)
@@ -360,16 +361,16 @@ class Ensemble():
                         idx = 0
                         for x in X_test_batches:
                             out = model(x)
-                            outputs[i, idx:idx+x.shape[0], :] = torch.nn.functional.softmax(out, dim=1)
+                            outputs[s, idx:idx+x.shape[0], :] = torch.nn.functional.softmax(out, dim=1)
                             idx += x.shape[0]
 
                     else:
                         out = model(X)
-                        outputs[i, :, :] = torch.nn.functional.softmax(out, dim=1)
+                        outputs[s, :, :] = torch.nn.functional.softmax(out, dim=1)
 
-                    losses[i] += self.criterion(outputs[i,:,:], y)/S
+                    losses[s] += self.criterion(outputs[s,:,:], y)/len(models_used)
 
-                swag_outputs += torch.mean(outputs, dim=0)/S
+                swag_outputs += torch.mean(outputs, dim=0)/len(models_used)
 
             self.load_swa_weights_model()
 
@@ -385,7 +386,7 @@ class Ensemble():
 
 
     def load_swag_results(self):
-        swa_dict = torch.load(f"./models/swag_results_fold_{self.k}"+self.run_name+".tar")
+        swa_dict = torch.load(f"./models/swag_results_fold_{self.k}"+self.run_name+".tar", map_location = self.device)
 
         self.swa_avg_m1 = swa_dict["swa_avg_m1"]
         self.swa_diag = swa_dict["swa_diag"]
