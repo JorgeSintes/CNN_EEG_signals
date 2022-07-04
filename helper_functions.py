@@ -114,14 +114,22 @@ def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_model
 
     model = Ensemble(nb_models, nb_classes, k=fold, run_name=run_name, transfer_to_device=True)
     model.load_weights()
+    
     accuracies = []
-    single_accuracies = []
-    single_log_preds = []
     accuracies_swa = []
+    accuracies_swag = []
+    
+    single_accuracies = []
     single_accuracies_swa = []
+    single_accuracies_swag = []
+    
+    single_log_preds = []
     single_log_preds_swa = []
+    single_log_preds_swag = []
+    
     log_pred_densities = []
     log_pred_densities_swa = []
+    log_pred_densities_swag = []
 
     for i in range(nb_models):
         metrics = model.test(X_test, y_test, model.inference, batch_size, models_used=i+1)
@@ -144,6 +152,21 @@ def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_model
             metrics = model.test(X_test, y_test, model.inference, batch_size, models_used=[i])
             single_accuracies_swa.append(metrics["acc"])
             single_log_preds_swa.append(metrics["log_pred_dens"])
+            
+            
+            # SWAG PART
+            
+            if swag_params['swag']:
+            
+                metrics = model.test(X_test, y_test, model.swag_inference, batch_size, models_used=i+1)
+                accuracies_swag.append(metrics["acc"])
+                log_pred_densities_swag.append(metrics["log_pred_dens"])
+
+                metrics = model.test(X_test, y_test, model.swag_inference, batch_size, models_used=[i])
+                single_accuracies_swag.append(metrics["acc"])
+                single_log_preds_swag.append(metrics["log_pred_dens"])
+            
+            
 
     return {"acc": accuracies, "single_acc": single_accuracies, "single_log_preds": single_log_preds, "acc_swa": accuracies_swa, "single_acc_swa": single_accuracies_swa, "single_log_preds_swa": single_log_preds_swa, "log_pred_dens": log_pred_densities, "log_pred_dens_swa": log_pred_densities_swa}
 
