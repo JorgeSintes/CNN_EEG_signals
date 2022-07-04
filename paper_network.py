@@ -342,9 +342,10 @@ class Ensemble():
             y = y.to(self.device)
 
             distributions = []
-            for model_no in enumerate(models_used):
-                cov_matrix = torch.diag(self.swa_diag[model_no]/2) + self.Ds[model_no] @ self.Ds[model_no].T / (2*(self.Ds[model_no].shape[1] - 1))
-                distributions.append(torch.distributions.multivariate_normal.MultivariateNormal(self.swa_avg_m1[model_no], covariance_matrix=cov_matrix))
+            for model_no in models_used:
+                #cov_matrix = torch.diag(self.swa_diag[model_no]/2) + self.Ds[model_no] @ self.Ds[model_no].T / (2*(self.Ds[model_no].shape[1] - 1))
+                #distributions.append(torch.distributions.multivariate_normal.MultivariateNormal(self.swa_avg_m1[model_no], covariance_matrix=cov_matrix))
+                distributions.append(torch.distributions.lowrank_multivariate_normal.LowRankMultivariateNormal(self.swa_avg_m1[model_no], self.Ds[model_no], self.swa_diag[model_no]))
 
             for s in range(S):
                 for i, model_no in enumerate(models_used):

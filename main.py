@@ -16,9 +16,9 @@ def main(plot=False):
     batch_size = 16
     num_epochs = 100
     nb_models = 10
-    nb_subs = 100               # number of subjscts
+    nb_subs = 100                   # number of subjscts
     w_init_params = (0, False)      # mean and std of initialized weights of models in Ensemble
-    classes = ["L", "R", "0"]   # selected classes - possible classes: "L", "R", "LR", "F", "0"
+    classes = ["L", "R", "0"]       # selected classes - possible classes: "L", "R", "LR", "F", "0"
 
     info_dict = {
                 'K': K,
