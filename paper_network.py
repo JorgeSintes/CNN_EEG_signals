@@ -220,19 +220,19 @@ class Ensemble():
             test_losses[:, epoch] = test_metrics["losses"]
 
             train_accuracies.append(train_metrics["acc"])
-            test_accuracies.append(test_metrics[1])
+            test_accuracies.append(test_metrics["acc"])
 
             train_conf = train_metrics["conf"]
             test_conf = test_metrics["conf"]
 
             if verbose:
-                print(f"Fold {self.k} Epoch {epoch + 1}: Train Accur {train_acc:.4f}, Test Accur {test_acc:.4f}")
+                print(f"Fold {self.k} Epoch {epoch + 1}: Train Accur {train_metrics['acc']:.4f}, Test Accur {test_metrics['acc']:.4f}")
                 if (epoch + 1) % 5 == 0:
                     print(f'Train conf. matrix, fold {self.k}, epoch {epoch + 1}: \n{train_conf}')
                     print(f'Test conf. matrix, fold {self.k} epoch {epoch + 1}: \n{test_conf}')
 
                 if self.output_file:
-                    self.output_file.write(f"Fold {self.k} Epoch {epoch + 1}: Train Accur {train_acc:.4f}, Test Accur {test_acc:.4f}\n")
+                    self.output_file.write(f"Fold {self.k} Epoch {epoch + 1}: Train Accur {train_metrics['acc']:.4f}, Test Accur {test_metrics['acc']:.4f}\n")
                     self.output_file.flush()
                     if (epoch + 1) % 5 == 0:
                         self.output_file.write(f'Train conf. matrix, fold {self.k}, epoch {epoch + 1}: \n{train_conf}\n')
