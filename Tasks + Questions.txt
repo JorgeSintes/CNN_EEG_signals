@@ -46,3 +46,6 @@ In swag_inference:
  -Try using LowRankMultivariateNormal instead of the regular one
 
  -
+ Possible fixes for running out of memory:
+  - We're not using no_grad maybe putting it makes it lighter
+  - We're using .tar that apparently is a non-compressed file format. WEe could look into other ways
