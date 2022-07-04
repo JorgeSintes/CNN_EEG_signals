@@ -170,7 +170,7 @@ def get_acc_fold(X, y, train_index, test_index, batch_size, nb_classes, nb_model
                 accuracies_swag.append(metrics["acc"])
                 log_pred_densities_swag.append(metrics["log_pred_dens"])
 
-                metrics = model.test(X_test, y_test, model.swag_inference, batch_size, models_used=[i])
+                metrics = model.test(X_test, y_test, model.swag_inference, batch_size, models_used=[i], S=swag_params['S'])
                 single_accuracies_swag.append(metrics["acc"])
                 single_log_preds_swag.append(metrics["log_pred_dens"])
 

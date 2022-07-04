@@ -38,7 +38,8 @@ def main(plot=False):
             "K": 1,                     # Number of model weights to construct covariance matrix of swag from, see paper
             "c": 1,                     # every c-th iteration of SGD for swa counts for computing mean and covariance matrix of swa
             "swa": True,                # Do swag if true
-            "swag": True                # Do swag if true
+            "swag": True,               # Do swag if true
+            "S": 30                     # No. of samples in swag test
             }
 
     if batch_size:
