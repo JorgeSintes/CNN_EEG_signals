@@ -272,10 +272,12 @@ class Ensemble():
             X_train_batches = torch.split(X_train, batch_size, dim=0)
             y_train_batches = torch.split(y_train, batch_size, dim=0)
 
-        self.swa_avg_m1 = [torch.nn.utils.parameters_to_vector(model.parameters()) for model in self.models]
+        self.swa_avg_m1 = [0 for _ in range(self.nb_models)]
+        no_params = sum(p.numel() for p in self.models[0].parameters())
+
         if swag:
-            self.swa_avg_m2 = [torch.square(el) for el in self.swa_avg_m1]
-            self.Ds = [torch.zeros((self.swa_avg_m1[0].shape[0], K)) for _ in range(len(self.swa_avg_m1))]
+            self.swa_avg_m2 = [0 for _ in range(self.nb_models)]
+            self.Ds = [torch.zeros((no_params, K)) for _ in range(self.nb_models)]
             D_it = 0
         else:
             self.swa_avg_m2 = None
@@ -302,9 +304,10 @@ class Ensemble():
                     loss.backward()
                     optimizer.step()
 
+            # Add a point every c'th iteration
             if (epoch+1) % c == 0:
-                n = (epoch+1) // c
-
+                n = epoch // c
+                print(n)
                 for m, model in enumerate(self.models):
                     layer = torch.nn.utils.parameters_to_vector(model.parameters())
                     self.swa_avg_m1[m] = (n * self.swa_avg_m1[m] + layer) / (n + 1)
@@ -345,7 +348,7 @@ class Ensemble():
                 #cov_matrix = torch.diag(self.swa_diag[model_no]/2) + self.Ds[model_no] @ self.Ds[model_no].T / (2*(self.Ds[model_no].shape[1] - 1))
                 #distributions.append(torch.distributions.multivariate_normal.MultivariateNormal(self.swa_avg_m1[model_no], covariance_matrix=cov_matrix))
 
-                self.swa_diag[model_no] = torch.nn.functional.relu(self.swa_diag[model_no]) + 1e-8
+                # self.swa_diag[model_no] = torch.nn.functional.relu(self.swa_diag[model_no]) + 1e-12
 
                 distribution = torch.distributions.lowrank_multivariate_normal.LowRankMultivariateNormal(loc=self.swa_avg_m1[model_no], cov_factor=self.swa_Ds[model_no]/np.sqrt(2*(self.swa_Ds[model_no].shape[1]-1)), cov_diag=self.swa_diag[model_no]/2)
 
@@ -379,6 +382,7 @@ class Ensemble():
 
     def save_swag_results(self):
         swa_dict = {"swa_avg_m1": self.swa_avg_m1,
+                    "swa_avg_m2": self.swa_avg_m2,
                     "swa_diag": self.swa_diag,
                     "swa_Ds": self.Ds}
 
@@ -389,6 +393,7 @@ class Ensemble():
         swa_dict = torch.load(f"./models/swag_results_fold_{self.k}"+self.run_name+".tar", map_location = self.device)
 
         self.swa_avg_m1 = swa_dict["swa_avg_m1"]
+        self.swa_avg_m2 = swa_dict["swa_avg_m2"]
         self.swa_diag = swa_dict["swa_diag"]
         self.swa_Ds = swa_dict["swa_Ds"]
 

@@ -16,6 +16,20 @@ def one_hot(array):
     return onehot, unique
 
 
+def get_data(nb_subs, classes):
+    X = np.load("./data/filtered_data/signals_ordered_6s_all_tags.npy")[:nb_subs, :, :, :]
+    y_pre = np.load("./data/filtered_data/targets_ordered_6s_all_tags.npy")[:nb_subs, :]
+
+    mask = np.isin(y_pre[0], classes)   # only works if class repartion is the same for all subjects
+
+    y_pre = y_pre[:, mask]
+    X = X[:, mask, :, :]
+
+    X = torch.from_numpy(X).float()
+
+    return X, y_pre
+
+
 def cross_validation_1_layer(X, y_pre, K, nb_models, lr=1e-5, wd=0, batch_size=64, num_epochs=2000, nb_classes=4, output_file=None, run_name="", w_init_params=(0,False), weights_folder=""):
     CV = StratifiedKFold(n_splits=K, shuffle=True, random_state=12)
 
@@ -56,7 +70,7 @@ def cross_validation_1_layer(X, y_pre, K, nb_models, lr=1e-5, wd=0, batch_size=6
         train_losses[i, :, :], test_losses[i, :, :], train_acc[i, :], test_acc[i, :], train_conf[i, :, :], test_conf[i, :, :] = model.train_test_on_the_fly(X_train, y_train, X_test, y_test, num_epochs, lr=lr, wd=wd, batch_size=batch_size, verbose=True)
         model.save_weights(weights_folder)
 
-    return train_losses, test_losses, train_acc, test_acc, train_conf, test_conf
+    return {"train_losses": train_losses, "test_losses": test_losses, "train_acc": train_acc, "test_acc": test_acc, "train_conf": train_conf, "test_conf": test_conf}
 
 
 # def plot_ensemble_all(X, y_pre, K, batch_size, nb_models, nb_classes, run_name, swag_params=None, alpha=0.5):
