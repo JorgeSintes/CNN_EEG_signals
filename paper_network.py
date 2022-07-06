@@ -220,19 +220,19 @@ class Ensemble():
             test_losses[:, epoch] = test_metrics["losses"]
 
             train_accuracies.append(train_metrics["acc"])
-            test_accuracies.append(test_metrics["acc"])
+            test_accuracies.append(test_metrics[1])
 
             train_conf = train_metrics["conf"]
             test_conf = test_metrics["conf"]
 
             if verbose:
-                print(f"Fold {self.k} Epoch {epoch + 1}: Train Accur {train_metrics['acc']:.4f}, Test Accur {test_metrics['acc']:.4f}")
+                print(f"Fold {self.k} Epoch {epoch + 1}: Train Accur {train_acc:.4f}, Test Accur {test_acc:.4f}")
                 if (epoch + 1) % 5 == 0:
                     print(f'Train conf. matrix, fold {self.k}, epoch {epoch + 1}: \n{train_conf}')
                     print(f'Test conf. matrix, fold {self.k} epoch {epoch + 1}: \n{test_conf}')
 
                 if self.output_file:
-                    self.output_file.write(f"Fold {self.k} Epoch {epoch + 1}: Train Accur {train_metrics['acc']:.4f}, Test Accur {test_metrics['acc']:.4f}\n")
+                    self.output_file.write(f"Fold {self.k} Epoch {epoch + 1}: Train Accur {train_acc:.4f}, Test Accur {test_acc:.4f}\n")
                     self.output_file.flush()
                     if (epoch + 1) % 5 == 0:
                         self.output_file.write(f'Train conf. matrix, fold {self.k}, epoch {epoch + 1}: \n{train_conf}\n')
@@ -318,11 +318,18 @@ class Ensemble():
                         if epoch >= num_epochs - K*c:
                             self.Ds[m][:, D_it] = layer - self.swa_avg_m1[m]
 
+                        # if m ==0:
+                        #     print("Layer: ", layer[:10])
+                        #     print("M1: ", self.swa_avg_m1[m][:10])
+                        #     print("M2: ", self.swa_avg_m2[m][:10])
+
                 if swag and (epoch >= num_epochs - K*c):
                     D_it += 1
 
         if swag:
             self.swa_diag = [sq_avg - torch.square(mean) for (mean, sq_avg) in zip(self.swa_avg_m1, self.swa_avg_m2)]
+            # print(self.swa_diag[0][:10])
+
 
         self.load_swa_weights_model()
 
