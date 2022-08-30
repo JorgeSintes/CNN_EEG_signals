@@ -215,22 +215,35 @@ def plot_ensemble(X, y_pre, K, batch_size, nb_models, nb_classes, fold, run_name
     accuracies_swa = metrics["acc_swa"]
     single_accuracies_swa = metrics["single_acc_swa"]
     single_log_preds_swa = metrics["single_log_preds_swa"]
+    accuracies_swag = metrics["acc_swag"]
+    single_accuracies_swag = metrics["single_acc_swag"]
+    single_log_preds_swag = metrics["single_log_preds_swag"]
     log_pred_densities = metrics["log_pred_dens"]
     log_pred_densities_swa = metrics["log_pred_dens_swa"]
+    log_pred_densities_swag = metrics["log_pred_dens_swag"]
 
     fig, ax = plt.subplots(1,2, figsize=(20,10))
-    ax[0].plot(list(range(1, nb_models + 1)), accuracies, 'b', label="Test accuracies")
-    ax[1].plot(list(range(1, nb_models + 1)), log_pred_densities, 'b', label="Test LPD")
+    ax[0].plot(list(range(1, nb_models + 1)), accuracies, c='C0', label="Test accuracies")
+    ax[1].plot(list(range(1, nb_models + 1)), log_pred_densities, c='C0', label="Test LPD")
 
     for single_acc in single_accuracies:
-        ax[0].plot(list(range(1, nb_models + 1)), [single_acc]*nb_models, 'g', alpha=alpha)
+        ax[0].plot(list(range(1, nb_models + 1)), [single_acc]*nb_models, c='C9', alpha=alpha)
 
     if swag_params:
-        ax[0].plot(list(range(1, nb_models + 1)), accuracies_swa, 'r', label="Test accuracies after SWA")
-        ax[1].plot(list(range(1, nb_models + 1)), log_pred_densities_swa, 'r', label="Test LPD after SWA")
+        ax[0].plot(list(range(1, nb_models + 1)), accuracies_swa, c='C2', label="Test accuracies - SWA")
+        ax[1].plot(list(range(1, nb_models + 1)), log_pred_densities_swa, c='C2', label="Test LPD - SWA")
+        ax[0].plot(list(range(1, nb_models + 1)), accuracies_swag, c='C4', label="Test accuracies - SWAG")
+        ax[1].plot(list(range(1, nb_models + 1)), log_pred_densities_swag, c='C4', label="Test LPD - SWAG")
 
         for single_acc in single_accuracies_swa:
-            ax[0].plot(list(range(1, nb_models + 1)), [single_acc]*nb_models, 'orange', alpha=alpha)
+            ax[0].plot(list(range(1, nb_models + 1)), [single_acc]*nb_models, c='C8', alpha=alpha)
+        for single_acc in single_accuracies_swag:
+            ax[0].plot(list(range(1, nb_models + 1)), [single_acc]*nb_models, c='C6', alpha=alpha)
+
+        for single_logpred in single_log_preds_swa:
+            ax[1].plot(list(range(1, nb_models + 1)), [single_logpred]*nb_models, c='C8', alpha=alpha)
+        for single_logpred in single_log_preds_swag:
+            ax[1].plot(list(range(1, nb_models + 1)), [single_logpred]*nb_models, c='C6', alpha=alpha)
 
     ax[0].set(xlabel="No. of models", ylabel="Accuracy")
     ax[1].set(xlabel="No. of models", ylabel="Log pred dens")

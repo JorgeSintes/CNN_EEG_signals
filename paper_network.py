@@ -272,12 +272,12 @@ class Ensemble():
             X_train_batches = torch.split(X_train, batch_size, dim=0)
             y_train_batches = torch.split(y_train, batch_size, dim=0)
 
-        self.swa_avg_m1 = [0 for _ in range(self.nb_models)]
         no_params = sum(p.numel() for p in self.models[0].parameters())
+        self.swa_avg_m1 = [torch.zeros(no_params, dtype=torch.float64).to(self.device) for _ in range(self.nb_models)]
 
         if swag:
-            self.swa_avg_m2 = [0 for _ in range(self.nb_models)]
-            self.Ds = [torch.zeros((no_params, K)) for _ in range(self.nb_models)]
+            self.swa_avg_m2 = [torch.zeros(no_params, dtype=torch.float64).to(self.device) for _ in range(self.nb_models)]
+            self.Ds = [torch.zeros((no_params, K), dtype=torch.float64).to(self.device) for _ in range(self.nb_models)]
             D_it = 0
         else:
             self.swa_avg_m2 = None
@@ -306,30 +306,25 @@ class Ensemble():
 
             # Add a point every c'th iteration
             if (epoch+1) % c == 0:
-                n = epoch // c
-                print(n)
-                for m, model in enumerate(self.models):
-                    layer = torch.nn.utils.parameters_to_vector(model.parameters())
-                    self.swa_avg_m1[m] = (n * self.swa_avg_m1[m] + layer) / (n + 1)
+                with torch.no_grad():
+                    n = epoch // c
 
-                    if swag:
-                        self.swa_avg_m2[m] = (n * self.swa_avg_m2[m] + torch.square(layer)) / (n + 1)
+                    for m, model in enumerate(self.models):
+                        layer = torch.nn.utils.parameters_to_vector(model.parameters())
+                        self.swa_avg_m1[m] = (n * self.swa_avg_m1[m] + layer) / (n + 1)
 
-                        if epoch >= num_epochs - K*c:
-                            self.Ds[m][:, D_it] = layer - self.swa_avg_m1[m]
+                        if swag:
+                            self.swa_avg_m2[m] = (n * self.swa_avg_m2[m] + torch.square(layer)) / (n + 1)
 
-                        # if m ==0:
-                        #     print("Layer: ", layer[:10])
-                        #     print("M1: ", self.swa_avg_m1[m][:10])
-                        #     print("M2: ", self.swa_avg_m2[m][:10])
+                            if epoch >= num_epochs - K*c:
+                                self.Ds[m][:, D_it] = layer - self.swa_avg_m1[m]
 
-                if swag and (epoch >= num_epochs - K*c):
-                    D_it += 1
+
+                    if swag and (epoch >= num_epochs - K*c):
+                        D_it += 1
 
         if swag:
             self.swa_diag = [sq_avg - torch.square(mean) for (mean, sq_avg) in zip(self.swa_avg_m1, self.swa_avg_m2)]
-            # print(self.swa_diag[0][:10])
-
 
         self.load_swa_weights_model()
 
@@ -352,18 +347,27 @@ class Ensemble():
             y = y.to(self.device)
 
             for model_no in models_used:
-                #cov_matrix = torch.diag(self.swa_diag[model_no]/2) + self.Ds[model_no] @ self.Ds[model_no].T / (2*(self.Ds[model_no].shape[1] - 1))
-                #distributions.append(torch.distributions.multivariate_normal.MultivariateNormal(self.swa_avg_m1[model_no], covariance_matrix=cov_matrix))
 
-                # self.swa_diag[model_no] = torch.nn.functional.relu(self.swa_diag[model_no]) + 1e-12
+                self.swa_diag[model_no] += 1e-16
 
-                distribution = torch.distributions.lowrank_multivariate_normal.LowRankMultivariateNormal(loc=self.swa_avg_m1[model_no], cov_factor=self.swa_Ds[model_no]/np.sqrt(2*(self.swa_Ds[model_no].shape[1]-1)), cov_diag=self.swa_diag[model_no]/2)
+                no_params = len(self.swa_diag[model_no])
+                K = self.swa_Ds[model_no].shape[1]
+
+                if torch.sum(self.swa_diag[model_no] <= 0):
+                    print(f"{torch.sum(self.swa_diag[model_no] <= 0)} ({torch.sum(self.swa_diag[model_no] <= 0)/no_params*100:.4f}%) non-positive values encountered in the diagonal matrix!")
+                    self.swa_diag[model_no][self.swa_diag[model_no] < 0] = 1e-16
 
                 for s in range(S):
                     model = self.models[model_no]
                     model.eval()
 
-                    torch.nn.utils.vector_to_parameters(distribution.sample(), model.parameters())
+                    z1 = torch.normal(0, 1, size=(no_params,)).to(self.device)
+                    z2 = torch.normal(0, 1, size=(K,)).to(self.device)
+
+                    sample = self.swa_avg_m1[model_no] + torch.sqrt(self.swa_diag[model_no]) * z1/np.sqrt(2) + self.swa_Ds[model_no] @ z2/np.sqrt(2*(K-1))
+
+
+                    torch.nn.utils.vector_to_parameters(sample, model.parameters())
 
                     if batch_size:
                         X_test_batches = torch.split(X, batch_size, dim=0)
